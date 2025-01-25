@@ -1,0 +1,57 @@
+.section1 {
+    position: relative;
+    padding-top: 0%;
+    width: 100%;
+    left: 50%;
+    top: 0%;
+    transform: translate(-50%, 0%);
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+}
+
+@keyframes rotate {
+    0% {
+        transform: translate(0, -100%); /* Top position */
+    }
+    33% {
+        transform: translate(100%, 0); /* Right position */
+    }
+    66% {
+        transform: translate(0, 100%); /* Bottom position */
+    }
+    100% {
+        transform: translate(-100%, 0); /* Left position */
+    }
+}
+
+/* General rotating-div styles */
+.rotating-div {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 16px;
+    background: linear-gradient(to right, #252535, #6c6c9b);
+    color: white;
+    font-size: 1rem;
+}
+
+/* Each div animation */
+.signup {
+    animation: rotate 9s linear infinite;
+}
+
+.postskills {
+    animation: rotate 9s linear infinite;
+    animation-delay: 3s; /* Staggered delay */
+}
+
+.connect {
+    animation: rotate 9s linear infinite;
+    animation-delay: 6s;
+}
+

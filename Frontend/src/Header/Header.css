@@ -1,0 +1,66 @@
+/* General */
+header {
+    transition: all 0.5s ease-in-out;
+}
+
+/* Logo Animation */
+.animate-logo {
+    animation: spin 2s infinite ease-in-out;
+}
+
+@keyframes spin {
+
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+
+    50% {
+        transform: rotate(10deg);
+    }
+}
+
+/* Hover Effects for Buttons */
+.btn-hover {
+    background: transparent;
+    border: none;
+    color: #252535;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-hover:hover {
+    color: #ffffff;
+    background-color: #230a67;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Slide-in Animation for Mobile Menu */
+.animate-slide {
+    animation: slideIn 0.5s ease-in-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Navigation Link Hover */
+ul li {
+    transition: color 0.3s ease-in-out;
+}
+
+ul li:hover {
+    color: #230a67;
+    cursor: pointer;
+}

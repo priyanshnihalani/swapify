@@ -1,0 +1,8 @@
+.alignbottom{
+    position: absolute;
+    right: 2rem;
+    bottom: 1rem;
+    border: 2px solid white;
+    padding: 8px;
+    border-radius: 50%;
+}

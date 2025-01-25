@@ -1,0 +1,9 @@
+.alignment{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.lineheight{
+    line-height: 30px;
+}
