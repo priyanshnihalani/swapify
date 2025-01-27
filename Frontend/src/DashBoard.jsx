@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "./Sockets/SocketProvider";
+import SocketContext from "./Sockets/SocketContext";
 
 
 function DashBoard() {
 
-    const socket = useSocket()
+    const socket = useContext(SocketContext)
     const [roomId, setRoomId] = useState("");
     const [generateRoomId, setGenerateRoomId] = useState("");
     const navigate = useNavigate();

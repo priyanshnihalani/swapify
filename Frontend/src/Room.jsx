@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState, useRef } from "react";
-import { useSocket } from "./Sockets/SocketProvider";
+import { useCallback, useEffect, useState, useRef, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faL, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import logo from './assets/images/logo2.png'
 import { useNavigate } from "react-router-dom";
+import SocketContext from "./Sockets/SocketContext";
 
 function Room() {
     const [microphone, setMicrophone] = useState(true)
     const [camera, setCamera] = useState(true)
     const [name, setName] = useState('')
-    const socket = useSocket();
+    const socket = useContext(SocketContext);
     const message = useRef();
     const [sockets, setSockets] = useState({});
     const [receiverId, setReceiverId] = useState(null);
@@ -83,18 +83,12 @@ function Room() {
             }
 
             // Handle incoming tracks
-            peerRef.current.ontrack = async (event) => {
+            peerRef.current.ontrack = (event) => {
+                console.log("Event: ",event)
+                console.log('RemoteVideoRef current:', remoteVideoRef.current);
                 if (event.streams && event.streams[0]) {
                     setRemoteStream(event.streams[0]);
                     console.log(event?.streams[0])
-                    if (remoteVideoRef.current) {
-                        remoteVideoRef.current.srcObject = event.streams[0];
-                        try {
-                            await remoteVideoRef.current.play();
-                        } catch (error) {
-                            console.error('Error playing remote video:', error);
-                        }
-                    }
                 }
             };
 
@@ -116,14 +110,14 @@ function Room() {
         }
     }, [localStream, remoteStream, remoteVideoRef.current, peerRef.current, socket, receiverId, callerId]);
 
-    // useEffect(() => {
-    //     if (remoteStream && remoteVideoRef.current) {
-    //         remoteVideoRef.current.srcObject = remoteStream;
-    //         remoteVideoRef.current.play().catch((error) => {
-    //             console.error('Error playing remote video:', error);
-    //         });
-    //     }
-    // }, [remoteStream]);
+    useEffect(() => {
+        if (remoteStream && remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch((error) => {
+                console.error('Error playing remote video:', error);
+            });
+        }
+    }, [remoteStream]);
 
 
     useEffect(() => {
@@ -249,14 +243,32 @@ function Room() {
     }, []);
 
     async function toggleCamera() {
-        setCamera(prevState => !prevState);
+        const newCameraState = !camera;
+        setCamera(newCameraState);
+    
+        // Stop and remove existing local stream tracks
         if (localStream) {
-            const videoTracks = localStream.getVideoTracks();
-            videoTracks.forEach(track => {
-                track.stop(); // This will turn off the camera light
-            });
+            localStream.getTracks().forEach(track => track.stop());
         }
-        await initializeMedia(!camera, microphone);
+    
+        // Reinitialize media stream
+        await initializeMedia(newCameraState, microphone);
+    
+        // Recreate peer connection if needed
+        if (peerRef.current) {
+            // Close existing peer connection
+            peerRef.current.close();
+            peerRef.current = null;
+            connectionInitialized.current = false;
+    
+            // Reinitialize peer connection
+            initializePeerConnection();
+    
+            // Renegotiate connection if users are connected
+            if (receiverId || callerId) {
+                handleCall();
+            }
+        }
     }
 
     function toggleMicrophone() {
@@ -356,14 +368,18 @@ function Room() {
             {
                 remoteStream ?
 
-                    <div className="remotealignment w-[90%] rounded-lg  h-[80%] bg-black rounded-b-lg overflow-hidden">
+                    <div className="alignment w-[90%] rounded-lg  h-[80%] bg-black rounded-b-lg overflow-hidden">
                         {console.log(remoteStream)}
                         <video
                             ref={remoteVideoRef}
                             autoPlay
                             playsInline
+                            muted
                             className="w-full h-full object-cover rounded-b-lg"
                             style={{}}
+                            onError={(e) => {
+                                console.error('Remote video error:', e);
+                            }}
                         />
                         <div className="absolute top-2 left-2 bg-black/50 text-white px-3 py-1 rounded-md text-sm">
                             Remote User
@@ -375,7 +391,7 @@ function Room() {
 
             {/* Local Video */}
 
-            <div className={`${remoteVideoRef == null ? 'remotealignment rounded-lg w-[90%] aspect-video' : 'absolute bottom-4 right-4 w-1/4 aspect-video bg-black rounded-lg overflow-hidden shadow-lg'} `}>
+            <div className={`${remoteVideoRef.current == null ? 'alignment rounded-lg w-[90%] aspect-video' : 'absolute bottom-4 right-4 w-1/4 aspect-video bg-black rounded-lg overflow-hidden shadow-lg'} `}>
                 {camera ? (
                     <video
                         ref={localVideoRef}

@@ -8,8 +8,7 @@ import imageCompression from 'browser-image-compression'
 import { useForm } from 'react-hook-form'
 
 function UserViewProfile() {
-    const { register, handleSubmit, formState: { errors } } = useForm();
-
+    const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [profileImage, setProfileImage] = useState(null);
     const [smallprofileImage, setsmallProfileImage] = useState(null);
     const [data, setData] = useState(null)
@@ -18,6 +17,8 @@ function UserViewProfile() {
     const [profileResponse, setProfileResponse] = useState(false);
     const [skillProvide, setSkillProvide] = useState([""]);
     const [displayProvide, setDisplayProvide] = useState(false)
+    const [skillWant, setSkillWant] = useState([""]);
+    const [displayWant, setDisplayWant] = useState(false);
 
     const skillComponent = (index) => {
         return (
@@ -41,11 +42,10 @@ function UserViewProfile() {
             setData(result)
             setImageSrc(result?.coverImage)
             setProfileImage(result?.profileImage)
-
         }
 
         collectData();
-    }, [])
+    }, [setSkillProvide, setSkillProvide])
 
     async function handleCoverImage(event) {
         const file = event.target.files[0];
@@ -53,7 +53,7 @@ function UserViewProfile() {
 
             const options = {
                 maxSizeMB: 500, // Limit to 1MB
-                maxWidthOrHeight: 1024, // Resize if dimensions exceed 1024px
+                maxWidthOrHeight: 1080, // Resize if dimensions exceed 1024px
             };
 
             const compressedFile = await imageCompression(file, options)
@@ -80,9 +80,9 @@ function UserViewProfile() {
         if (file) {
 
             const options = {
-                maxSizeMB: 1024, // Limit to 1MB
-                maxWidthOrHeight: 1920, // Resize if dimensions exceed 1024px
-                useWebWorker: true
+                maxSizeMB: 500, // Limit to 1MB
+                maxWidthOrHeight: 1080, // Resize if dimensions exceed 1024px
+                // useWebWorker: true
             };
             const compressedFile = await imageCompression(file, options)
             const reader = new FileReader();
@@ -95,7 +95,7 @@ function UserViewProfile() {
     }
 
     async function submit(profileData) {
-
+        
         // console.log(data._id)
         localStorage.setItem('name', profileData.name)
 
@@ -115,21 +115,30 @@ function UserViewProfile() {
         alert(result.message)
         setProfileResponse(!profileResponse)
         setProfileCard(false)
+        reset()
+        window.location.reload();
+
     }
 
-    function removeSkill(index) {
+    function removeSkillProvide(index) {
         setSkillProvide(prev => {
+            return prev.filter((_, i) => i !== index)
+        })
+    }
+
+    function removeSkillWant(index) {
+        setSkillWant(prev => {
             return prev.filter((_, i) => i !== index)
         })
     }
 
     async function submitProvideSkills(skilldata) {
         console.log(data._id)
-        const newData = Object.values(skilldata).map((value) => {
-            return value
-        })
+        const newData = Object.values(skilldata).map((value) => value);
 
-        let finalData = [...data?.skillprovide, ...newData]
+        const dataskill = Array.isArray(data?.skillprovide) ? [...data.skillprovide] : [];
+
+        let finalData = [...dataskill, ...newData]
         const response = await fetch(`http://localhost:3000/skillprovide/${data._id}`, {
             method: 'PATCH',
             headers: {
@@ -138,8 +147,48 @@ function UserViewProfile() {
             body: JSON.stringify({ skillprovide: finalData })
         })
         console.log(await response.json())
+        reset()
         setDisplayProvide(false)
+        window.location.reload();
+
     }
+
+    async function submitWantSkills(skilldata) {
+        console.log(data._id);
+    
+        const newData = Object.values(skilldata).map((value) => value);
+    
+        const dataskill = Array.isArray(data?.skillwant) ? [...data.skillwant] : [];
+    
+        const finalData = [...dataskill, ...newData];
+    
+        console.log("Final Data Sent:", JSON.stringify({ skillwant: finalData }));
+    
+        try {
+            const response = await fetch(`http://localhost:3000/skillwant/${data._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ skillwant: finalData }),
+            });
+    
+            const result = await response.json();
+            console.log("Response from Server:", result);
+    
+            if (!response.ok) {
+                console.error("Server Error:", response.status, result);
+            } else {
+                reset()
+                setDisplayWant(false);
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Error during fetch:", error);
+        }
+    }
+    
+
 
     return (
         <>
@@ -186,7 +235,7 @@ function UserViewProfile() {
                                 <FontAwesomeIcon icon={faCoins} className='text-yellow-500 text-sm' />
                                 <span className='text-xs ml-2'>100</span>
                             </div>
-                            <button className='bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-full hover:bg-blue-600' onClick={() => setProfileCard(true)}>Edit Profile</button>
+                            <button className='bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white py-2 px-4 rounded-full hover:bg-blue-600' onClick={() => setProfileCard(true)}>Edit Profile</button>
                         </div>
                     </div>
                 </div>
@@ -235,7 +284,7 @@ function UserViewProfile() {
                                         <div className='w-full'>
                                             {skillComponent(index)}
                                         </div>
-                                        <div onClick={() => removeSkill(index)}>
+                                        <div onClick={() => removeSkillProvide(index)}>
                                             <FontAwesomeIcon icon={faTrashAlt} color='red' className='cursor-pointer' />
                                         </div>
                                     </div>
@@ -259,7 +308,7 @@ function UserViewProfile() {
                                 </div>
                             </div>
                             <div className='py-5 px-8'>
-                                {data?.skillprovide.map((item, index) => (
+                                {data?.skillprovide?.map((item, index) => (
                                     <div key={index} className='list-item'>
                                         {Object.values(item)}
                                     </div>
@@ -267,9 +316,48 @@ function UserViewProfile() {
                             </div>
                         </div>
 
-                        <div className='w-full shadow-md flex justify-between items-center py-6 px-8'>
-                            <div className='text-lg font-semibold'>Skills I Want</div>
-                            <FontAwesomeIcon icon={faPenAlt} className='cursor-pointer' />
+                        {displayWant && <div className='absolute min-h-[200px] bg-white shadow-lg w-1/2 px-4 py-6 font-semibold' style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                            <div className='flex justify-between'>
+                                <h1>Add Skills You Want to Learn</h1>
+                                <div className='cursor-pointer' onClick={() => setDisplayWant(false)}>
+                                    <FontAwesomeIcon icon={faClose} />
+                                </div>
+                            </div>
+                            <form onSubmit={handleSubmit(submitWantSkills)}>
+                                <div className='my-10 space-y-4'>
+                                    {skillWant.map((_, index) => (
+                                        <div key={index} className='flex space-x-4 items-center'>
+                                            <div className='w-full'>
+                                                {skillComponent(index)}
+                                            </div>
+                                            <div onClick={() => removeSkillWant(index)}>
+                                                <FontAwesomeIcon icon={faTrashAlt} color='red' className='cursor-pointer' />
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                </div>
+                                <div className='w-full absolute bottom-2 py-2'>
+                                    <div className='w-full flex justify-evenly'>
+                                        <button type='button' className='border px-2 py-1' onClick={() => setSkillWant(prev => [...prev, ""])}>Add Skill</button>
+                                        <button type='submit' className='border px-2 py-1' >Save</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>}
+
+                        <div className='w-full shadow-md  py-6 px-8'>
+                            <div className='flex justify-between'>
+                                <div className='text-lg font-semibold'>Skills I Want</div>
+                                <FontAwesomeIcon icon={faPenAlt} className='cursor-pointer' onClick={() => setDisplayWant(true)} />
+                            </div>
+                            <div className='py-5 px-8'>
+                                {data?.skillwant?.map((item, index) => (
+                                    <div key={index} className='list-item'>
+                                        {Object.values(item)}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

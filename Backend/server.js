@@ -11,6 +11,7 @@ import passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import session from 'express-session';
 import bodyParser from 'body-parser';
+import Chat from './chat.js';
 // Create an Express app
 const app = express();
 env.config();
@@ -53,7 +54,32 @@ MongoClient.connect(url).then(client => {
     console.log(error);
 });
 
-setupWebRTC(io);
+
+setupWebRTC(io);    
+Chat(io);
+
+app.get('/searchData/:data', async (request, response) => {
+    const data = request.params.data;
+    const record = await db.collection('users').find(
+        {
+            $or:[
+                {description: { $regex: data, $options: 'i' }},
+                {skillprovide: {$regex: data, $options: 'i'}}
+            ]
+        }
+    ).toArray()
+    try {
+
+
+        if (!record) {
+            return response.status(404).send({ message: 'No Data Found' });
+        }
+        response.status(200).send(record);
+    }
+    catch (error) {
+        console.log(error)
+    }
+})
 
 app.get('/userviewprofile/:name', async (request, response) => {
 
@@ -72,6 +98,35 @@ app.get('/userviewprofile/:name', async (request, response) => {
         console.log(error)
     }
 
+})
+app.get('/home/:name', async (request, response) => {
+    const user = decodeURIComponent(request.params.name);
+    try{
+        const record = await db.collection('users').findOne({name: user});
+        if (!record) {
+            return response.status(404).send({ message: 'User not found' });
+        }
+
+        response.status(200).send(record)
+    }
+    catch(error){
+        console.log(error)
+    }
+})
+
+app.get('/peopleviewprofile/:name', async (request, response) => {
+    const user = decodeURIComponent(request.params.name);
+    try{
+        const record = await db.collection('users').findOne({name: user});
+        if (!record) {
+            return response.status(404).send({ message: 'User not found' });
+        }
+
+        response.status(200).send(record)
+    }
+    catch(error){
+        console.log(error)
+    }
 })
 
 app.post('/register', async (request, response) => {
@@ -261,6 +316,34 @@ app.patch('/skillprovide/:id', async (request, response) => {
         response.status(500).send({ message: 'Internal Server Error' });
     }
 });
+
+app.patch('/skillwant/:id', async (req, res) => {
+    const { id } = req.params;
+    const { skillwant } = req.body;
+
+    // Check if `skillwant` exists and is an array
+    if (!skillwant || !Array.isArray(skillwant)) {
+        return res.status(400).send({ error: 'Invalid or missing skillwant data' });
+    }
+
+    try {
+        // Example: Update the database
+        const updatedData = await db.collection('users').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { skillwant } },
+        );
+
+        if (!updatedData) {
+            return res.status(404).send({ error: 'Data not found' });
+        }
+
+        res.send(updatedData);
+    } catch (err) {
+        console.error('Error updating data:', err);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
 // Start the server
 const PORT = 3000;
 server.listen(PORT, () => {

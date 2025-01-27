@@ -13,6 +13,8 @@ import Terms_Condition from "./Terms_Condition/Terms_Condition";
 import MeetBoard from "./Meetboard/Meetboard";
 import Meetroom from "./Meetboard/Meetroom";
 import UserViewProfile from "./Profile/UserViewProfile";
+import Chat from "./Chat/Chat";
+import PeopleViewProfile from "./Profile/PeopleViewProfile";
 
 function App() {
     return (
@@ -33,6 +35,8 @@ function App() {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/dashboard" element={<DashBoard/>} />
+                <Route path="/chatroom" element={<Chat/>} />
+                <Route path="/peopleviewprofile/:name" element={<PeopleViewProfile/>} />
             </Routes>
         </Router>
     )

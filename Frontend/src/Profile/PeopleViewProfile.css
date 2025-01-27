@@ -1,0 +1,11 @@
+.chat-container::-webkit-scrollbar {
+    display: none;
+    /* Hides the scrollbar */
+}
+
+.chat-container {
+    scrollbar-width: none;
+    /* Hides scrollbar in Firefox */
+    -ms-overflow-style: none;
+    /* Hides scrollbar in IE/Edge */
+}
