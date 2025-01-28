@@ -15,6 +15,7 @@ import Meetroom from "./Meetboard/Meetroom";
 import UserViewProfile from "./Profile/UserViewProfile";
 import Chat from "./Chat/Chat";
 import PeopleViewProfile from "./Profile/PeopleViewProfile";
+import NotFound from "./NotFound/NotFound";
 
 function App() {
     return (
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/dashboard" element={<DashBoard/>} />
                 <Route path="/chatroom" element={<Chat/>} />
                 <Route path="/peopleviewprofile/:name" element={<PeopleViewProfile/>} />
+                <Route path = '*' element={<NotFound />} />
             </Routes>
         </Router>
     )

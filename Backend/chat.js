@@ -1,45 +1,54 @@
-
 export default function Chat(io) {
+  const users = {};
 
-    const users = {}
+  io.on('connection', (socket) => {
+      console.log('User is Connected in Chat room');
 
-    io.on('connection', (socket) => {
-        console.log('User is Connected in Chat room')
+      socket.on('login', (id) => {
+          if (id) {
+              users[id] = { socketId: socket.id, status: "online" };
+              // Broadcast status change to all connected clients
+              io.emit('userStatusChange', { userId: id, status: 'online' });
+          }
+          console.log(`${id} is online`);
+          console.log('Current users:', users);
+      });
 
-        socket.on('login', (id) => {
-            if(id){
-                users[id] = {socketId: socket.id, status: "online"}
-            }
-            console.log(`${id} is online`)
-            console.log(users)
-        })
-
-        socket.on("getStatus", (targetUserId) => {
-            const targetUser = users[targetUserId];
-            if (targetUser) {
+      socket.on("getStatus", (targetUserId) => {
+          const targetUser = users[targetUserId];
+          if (targetUser) {
               io.to(socket.id).emit("status", {
-                userId: targetUserId,
-                status: targetUser.status || "offline",
+                  userId: targetUserId,
+                  status: targetUser.status || "offline",
               });
-            } else {
+          } else {
               io.to(socket.id).emit("status", {
-                userId: targetUserId,
-                status: "offline",
+                  userId: targetUserId,
+                  status: "offline",
               });
-            }
-          });
+          }
+      });
 
-          socket.on('send-message', (receiverId, message) => {
-            console.log(`${message} sent to ${receiverId}`)
-            if (users[receiverId]) {
-                io.to(users[receiverId].socketId).emit('receive-message', message);
-                io.to('6794f948273877543780ef48').emit('message')
-                console.log('Message sent to:', users[receiverId].socketId);
-            }
-        });
+      socket.on('send-message', (receiverId, message) => {
+          console.log(`Message "${message}" sent to ${receiverId}`);
+          if (users[receiverId]) {
+              io.to(users[receiverId].socketId).emit('receive-message', message);
+              console.log('Message sent to socket:', users[receiverId].socketId);
+          } else {
+              console.log('Receiver not found or offline:', receiverId);
+          }
+      });
 
-        socket.on('disconnect', () => {
-            console.log("User is Disconnected")
-        })
-    })
-} 
+      socket.on('disconnect', () => {
+          // Find and remove the disconnected user
+          const userId = Object.keys(users).find(key => users[key].socketId === socket.id);
+          if (userId) {
+              delete users[userId];
+              // Broadcast status change to all connected clients
+              io.emit('userStatusChange', { userId, status: 'offline' });
+          }
+          console.log("User is Disconnected");
+          console.log('Remaining users:', users);
+      });
+  });
+}

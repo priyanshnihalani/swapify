@@ -54,43 +54,46 @@ function PeopleViewProfile() {
   }, [id])
 
   useEffect(() => {
-    // Status listener
+    
     const handleStatus = (data) => {
       setReceiverId(data.userId);
       setStatus(data.status);
     };
-
-    // Message listener
-    const handleMessage = () => {
-      // console.log('Message received in frontend:', message);
-      // setMessages(prevMessages => {
-      //   console.log('Previous messages:', prevMessages);
-      //   const newMessages = [...prevMessages, { text: message, type: 'receive' }];
-      //   console.log('New messages state:', newMessages);
-      //   return newMessages;
-      // });
-      console.log('event fired')
+  
+    
+    const handleMessage = (receivedMessage) => {
+      console.log('Message received in frontend:', receivedMessage);
+      setMessages(prevMessages => {
+        console.log('Previous messages:', prevMessages);
+        const newMessages = [...prevMessages, { text: receivedMessage, type: 'receive' }];
+        console.log('New messages state:', newMessages);
+        return newMessages;
+      });
     };
-
-    // Add listeners
+  
+    
     socket.on('status', handleStatus);
-    socket.on('message', handleMessage);
-
-    // Cleanup function to remove listeners
+    socket.on('receive-message', handleMessage);
+  
+    
     return () => {
       socket.off('status', handleStatus);
       socket.off('receive-message', handleMessage);
     };
+    
   }, [socket]);
+
   function showMessageBox() {
     setDisplay(!display);
   }
 
   function sendMessage() {
+  if (message.trim() && receiverId) {
     socket.emit('send-message', receiverId, message);
-    setMessages((prevMessages) => [...prevMessages, { text: message, type: 'sent' }]);
+    setMessages(prevMessages => [...prevMessages, { text: message, type: 'sent' }]);
     setMessage('');
   }
+}
 
   if (loading) {
     return (
