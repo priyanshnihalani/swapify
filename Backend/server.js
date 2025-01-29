@@ -317,13 +317,13 @@ app.patch('/skillprovide/:id', async (request, response) => {
     }
 });
 
-app.patch('/skillwant/:id', async (req, res) => {
-    const { id } = req.params;
-    const { skillwant } = req.body;
+app.patch('/skillwant/:id', async (request, response) => {
+    const { id } = request.params;
+    const { skillwant } = request.body;
 
     // Check if `skillwant` exists and is an array
     if (!skillwant || !Array.isArray(skillwant)) {
-        return res.status(400).send({ error: 'Invalid or missing skillwant data' });
+        return response.status(400).send({ error: 'Invalid or missing skillwant data' });
     }
 
     try {
@@ -334,16 +334,61 @@ app.patch('/skillwant/:id', async (req, res) => {
         );
 
         if (!updatedData) {
-            return res.status(404).send({ error: 'Data not found' });
+            return response.status(404).send({ error: 'Data not found' });
         }
 
-        res.send(updatedData);
+        response.send(updatedData);
     } catch (err) {
         console.error('Error updating data:', err);
-        res.status(500).send({ error: 'Internal Server Error' });
+        response.status(500).send({ error: 'Internal Server Error' });
     }
 });
 
+
+app.post('/sendmessagedb', async (request, response) => {
+    const {sender, receiver, message, timestamp} = request.body;
+
+    const result = await db.collection('sendMessage').insertOne({
+        sender,
+        receiver,
+        message, 
+        timestamp
+    })
+
+    if(result?.modifiedCount == 0){
+        return response.status(500).send({message: 'Something Went Wrong!'})
+    }
+    response.status(200).send({message: "Record Inserted"})
+})
+
+
+app.get('/sendedChat', async (request, response) => {
+    const {from, to} = request.query;
+
+    const result = await db.collection('sendMessage').find({
+        sender: from,
+        receiver: to 
+    }).toArray()
+
+    if(result.matchedCount == 0){
+        return res.status(404).send({ error: 'Data not found' });
+    }
+    response.send(result);
+})
+
+// app.get('/receivedChat', async (request, response) => {
+//     const {from, to} = request.query;
+
+//     const result = await db.collection('sendMessage').find({
+//         sender: from,
+//         receiver: to 
+//     }).toArray()
+
+//     if(result.matchedCount == 0){
+//         return res.status(404).send({ error: 'Data not found' });
+//     }
+//     response.send(result);
+// })
 // Start the server
 const PORT = 3000;
 server.listen(PORT, () => {

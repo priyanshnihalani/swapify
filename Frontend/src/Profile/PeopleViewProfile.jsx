@@ -25,15 +25,23 @@ function PeopleViewProfile() {
   const [receiverId, setReceiverId] = useState(null);
   const socket = useContext(SocketContext);
   const [hasRefreshed, setHasRefreshed] = useState(false)
-
+  const [myId, setMyId] = useState(null)
+  const [sendMessages, setSendMessages] = useState([]);
+  const [receiveMessages, setReceiveMessages] = useState([]);
+  const [receiverCount, setReceiverCount] = useState(0)
   useEffect(() => {
+
+    const myId = localStorage.getItem('id')
+    setMyId(myId)
+
     const username = encodeURIComponent(name);
-    async function fetchData() {
+    async function fetchUserData() {
       try {
         const response = await fetch(
           `http://localhost:3000/peopleviewprofile/${username}`
         );
         const result = await response.json();
+        console.log(result)
         setData(result);
         setId(result._id);
       } catch (error) {
@@ -42,58 +50,147 @@ function PeopleViewProfile() {
         setLoading(false);
       }
     }
+    fetchUserData();
 
-    fetchData();
   }, [name]);
 
   useEffect(() => {
     if (id) {
       socket.emit('getStatus', id);
     }
-
   }, [id])
 
+
   useEffect(() => {
-    
+    if (data) {
+      async function fetchSendedChatData() {
+        try {
+          const response = await fetch(`http://localhost:3000/sendedChat?from=${myId}&to=${data?._id}`);
+          const result = await response.json();
+          const newMessages = result.map(item => ({
+            message: item.message,
+            type: item.sender === myId ? "sent" : "receive",
+            timestamp: item.timestamp,
+          }));
+
+          setSendMessages(newMessages);
+
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      }
+
+      fetchSendedChatData();
+    }
+  }, [myId, data]);
+
+  useEffect(() => {
+    if (data) {
+      async function fetchReceivedChatData() {
+        try {
+          const response = await fetch(`http://localhost:3000/sendedChat?from=${data?._id}&to=${myId}`);
+          const result = await response.json();
+          const newMessages = result.map(item => ({
+            message: item.message,
+            type: item.sender === myId ? "sent" : "receive",
+            timestamp: item.timestamp,
+          }));
+
+          messages.map((item) => {
+            if(item.type = 'receiver'){
+
+            }
+          })
+          setReceiveMessages(newMessages);
+
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      }
+
+      console.log(id, myId, status)
+      fetchReceivedChatData();
+    }
+  }, [myId, data, status]);
+
+  useEffect(() => {
+
     const handleStatus = (data) => {
       setReceiverId(data.userId);
       setStatus(data.status);
     };
-  
-    
+
+
     const handleMessage = (receivedMessage) => {
       console.log('Message received in frontend:', receivedMessage);
       setMessages(prevMessages => {
         console.log('Previous messages:', prevMessages);
-        const newMessages = [...prevMessages, { text: receivedMessage, type: 'receive' }];
+        const newMessages = [...prevMessages, { message: receivedMessage, type: 'receive' }];
         console.log('New messages state:', newMessages);
         return newMessages;
       });
     };
-  
-    
+
+
     socket.on('status', handleStatus);
     socket.on('receive-message', handleMessage);
-  
-    
+
+
     return () => {
       socket.off('status', handleStatus);
       socket.off('receive-message', handleMessage);
     };
-    
+
   }, [socket]);
+
+
+  useEffect(() => {
+
+    if (receiveMessages || sendMessages) {
+
+      const allMessages = [...receiveMessages, ...sendMessages];
+
+      let newArray = allMessages.sort((a, b) => a.timestamp - b.timestamp);
+      setMessages(newArray);
+
+      console.log(allMessages);
+    }
+
+  }, [receiveMessages, sendMessages])
+
 
   function showMessageBox() {
     setDisplay(!display);
   }
 
   function sendMessage() {
-  if (message.trim() && receiverId) {
-    socket.emit('send-message', receiverId, message);
-    setMessages(prevMessages => [...prevMessages, { text: message, type: 'sent' }]);
-    setMessage('');
+    if (message.trim() && receiverId) {
+      socket.emit('send-message', receiverId, message);
+      setMessages(prevMessages => [...prevMessages, { message: message, type: 'sent' }]);
+      setMessage('');
+      const timestamp = new Date().getTime();
+
+      async function sendMessageDB() {
+        const response = await fetch('http://localhost:3000/sendmessagedb', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: myId,
+            receiver: id,
+            message,
+            timestamp
+          })
+        })
+
+        const result = await response.json()
+        console.log(result);
+      }
+
+      sendMessageDB()
+    }
   }
-}
 
   if (loading) {
     return (
@@ -216,7 +313,7 @@ function PeopleViewProfile() {
                   {messages.map((message, index) => (
                     <div key={index} className={message.type === 'sent' ? 'flex justify-end' : 'flex justify-start'}>
                       <p className="m-2 rounded-full bg-gradient-to-r text-white from-[#252535] to-[#6C6C9B] px-4 py-2">
-                        {message.text}
+                        {message.message}
                       </p>
                     </div>
                   ))}

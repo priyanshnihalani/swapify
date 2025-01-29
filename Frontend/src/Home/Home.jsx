@@ -28,7 +28,7 @@ function Home() {
         if (name) {
             fetchData()
         }
-        
+
         if (token) {
             try {
                 const decodeToken = JSON.parse(atob(token.split('.')[1]));
@@ -62,7 +62,9 @@ function Home() {
 
     useEffect(() => {
         console.log(id)
-        socket.emit('login', id)
+        if (id) {
+            socket.emit('login', id)
+        }
     }, [id])
 
     return (
