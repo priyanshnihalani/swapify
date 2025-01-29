@@ -76,19 +76,17 @@ function Room() {
                 localStream.getTracks().forEach(track => {
                     peerRef.current.addTrack(track, localStream);
                 });
-
-                console.log('Local Stream Tracks:', localStream.getTracks());
-                console.log('Local Video Tracks:', localStream.getVideoTracks());
-                console.log('Local Audio Tracks:', localStream.getAudioTracks());
             }
 
             // Handle incoming tracks
             peerRef.current.ontrack = (event) => {
-                console.log("Event: ",event)
-                console.log('RemoteVideoRef current:', remoteVideoRef.current);
                 if (event.streams && event.streams[0]) {
-                    setRemoteStream(event.streams[0]);
-                    console.log(event?.streams[0])
+                    const stream = event.streams[0];
+                    if (stream.getVideoTracks().length > 0 || stream.getAudioTracks().length > 0) {
+                        setRemoteStream(stream);
+                    } else {
+                        console.error('Remote stream has no tracks:', stream);
+                    }
                 }
             };
 
@@ -120,17 +118,9 @@ function Room() {
     }, [remoteStream]);
 
 
-    useEffect(() => {
-        if (peerRef.current) {
-            console.log('Connection state:', peerRef.current.connectionState);
-            console.log('Remote stream:', remoteStream);
-            console.log('Video Tracks:', remoteStream?.getVideoTracks());
-            console.log('Audio Tracks:', remoteStream?.getAudioTracks());
-            console.log(remoteVideoRef);
-
-        }
-        if (peerRef.current?.connectionState === 'connected') {
-            setInMeet(true);
+    useEffect(() => { 
+        if(peerRef.current?.connectionState == 'connected'){
+            setInMeet(true)
         }
     }, [peerRef.current?.connectionState]);
 
@@ -150,6 +140,7 @@ function Room() {
             const myData = data.users.filter((user) => {
                 return user.name == storedName;
             })
+
             setHost(myData[0]?.Ishost);
 
             const newData = data.users.filter((user) => {
@@ -187,6 +178,8 @@ function Room() {
         };
     }, [socket]);
 
+
+    
 
     // Step 4: Improved call handling
     const handleCall = async () => {

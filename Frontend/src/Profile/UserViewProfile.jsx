@@ -220,9 +220,11 @@ function UserViewProfile() {
 
             <main className='space-y-10 px-6 py-8 min-h-screen bg-gray-50 font-jost'>
                 <div className='relative shadow-md rounded-lg overflow-hidden'>
-                    <div className='relative min-h-[250px] bg-gray-200 bg-cover' style={{ backgroundImage: imageSrc ? `url(${imageSrc})` : 'none' }}>
+                    <div className='relative min-h-[250px] bg-gray-200 bg-cover 
+                    imgs' style={{ backgroundImage: imageSrc ? `url(${imageSrc})` : 'none' }} >
+                        {/* <img src={imageSrc} alt="" className='imgs' /> */}
                         <label htmlFor="bg-file">
-                            <FontAwesomeIcon icon={faPenClip} className='text-white absolute top-4 right-4 cursor-pointer' />
+                            <FontAwesomeIcon icon={faPenClip} className='bg-white p-3 rounded-full shadow-md text-blue-900 absolute top-4 right-4 cursor-pointer' />
                         </label>
                         <input type='file' id='bg-file' className='hidden' onChange={(event) => handleCoverImage(event)} />
                         <div className='shadow-lg absolute -bottom-10 rounded-full w-[120px] h-[120px] bg-gray-400 bg-cover border-4 border-white left-6' style={{ backgroundImage: imageSrc ? `url(${profileImage})` : null }}></div>

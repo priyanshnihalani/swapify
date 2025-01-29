@@ -73,25 +73,7 @@ export const setupWebRTC = (io) => {
             io.to(data.receiver).emit('candidate-received')
         })
 
-        socket.on('remoteStream', (data) => {
-            console.log('Server processing stream data:', data);
-            // Only forward the necessary data
-            io.to(data.caller).emit('remoteStream', {
-                transferId: data.streamData.transferId,
-                from: socket.id,
-                tracks: data.streamData.tracks
-            });
-        });
-
-        socket.on('localStream', (data) => {
-            console.log('Server processing local stream data:', data);
-            // Only forward the necessary data
-            io.to(data.caller).emit('localStream', {
-                transferId: data.streamData.transferId,
-                from: socket.id,
-                tracks: data.streamData.tracks
-            });
-        });
+        
 
         socket.on("disconnect", () => {
             users

@@ -6,3 +6,7 @@
     padding: 8px;
     border-radius: 50%;
 }
+.imgs{
+    width: 100%;
+    aspect-ratio: 12 / 2;
+}
