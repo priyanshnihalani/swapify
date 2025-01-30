@@ -24,15 +24,23 @@ function PeopleViewProfile() {
   const [id, setId] = useState(null)
   const [receiverId, setReceiverId] = useState(null);
   const socket = useContext(SocketContext);
-  const [hasRefreshed, setHasRefreshed] = useState(false)
+  // const [hasRefreshed, setHasRefreshed] = useState(false)
   const [myId, setMyId] = useState(null)
   const [sendMessages, setSendMessages] = useState([]);
   const [receiveMessages, setReceiveMessages] = useState([]);
-  const [receiverCount, setReceiverCount] = useState(0)
+
   useEffect(() => {
 
-    const myId = localStorage.getItem('id')
-    setMyId(myId)
+    const id = localStorage.getItem('id')
+    setMyId(id);
+    console.log(id)
+
+    if (id) {
+      socket.emit('login', id)
+    }
+  }, [])
+
+  useEffect(() => {
 
     const username = encodeURIComponent(name);
     async function fetchUserData() {
@@ -52,7 +60,7 @@ function PeopleViewProfile() {
     }
     fetchUserData();
 
-  }, [name]);
+  }, [name, myId]);
 
   useEffect(() => {
     if (id) {
@@ -60,10 +68,10 @@ function PeopleViewProfile() {
     }
   }, [id])
 
-
   useEffect(() => {
     if (data) {
       async function fetchSendedChatData() {
+
         try {
           const response = await fetch(`http://localhost:3000/sendedChat?from=${myId}&to=${data?._id}`);
           const result = await response.json();
@@ -96,11 +104,6 @@ function PeopleViewProfile() {
             timestamp: item.timestamp,
           }));
 
-          messages.map((item) => {
-            if(item.type = 'receiver'){
-
-            }
-          })
           setReceiveMessages(newMessages);
 
         } catch (error) {
@@ -150,8 +153,7 @@ function PeopleViewProfile() {
 
       const allMessages = [...receiveMessages, ...sendMessages];
 
-      let newArray = allMessages.sort((a, b) => a.timestamp - b.timestamp);
-      setMessages(newArray);
+
 
       console.log(allMessages);
     }
@@ -307,14 +309,12 @@ function PeopleViewProfile() {
             </div>
 
             {/* Chat Container */}
-            <div className="bg-gray-100 min-h-[500px] max-h-[500px] overflow-y-scroll py-4 px-2 chat-container">
+            <div className="bg-gray-100 min-h-[500px] max-h-[500px] overflow-y-scroll py-4 px-2 chat-container style-bg">
               {messages.length > 0 && (
                 <div className="messages">
                   {messages.map((message, index) => (
                     <div key={index} className={message.type === 'sent' ? 'flex justify-end' : 'flex justify-start'}>
-                      <p className="m-2 rounded-full bg-gradient-to-r text-white from-[#252535] to-[#6C6C9B] px-4 py-2">
-                        {message.message}
-                      </p>
+                       <p className={`px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
                     </div>
                   ))}
                 </div>

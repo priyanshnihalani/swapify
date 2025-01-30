@@ -87,7 +87,6 @@ app.get('/userviewprofile/:name', async (request, response) => {
 
     try {
         const record = await db.collection('users').findOne({ name: user })
-        console.log(record)
         if (!record) {
             return response.status(404).send({ message: 'User not found' });
         }
@@ -244,10 +243,9 @@ app.get('/auth/facebook/callback',
 );
 
 app.patch('/uploadCover/:id', async (request, response) => {
-    console.log('Request body:', request.body);  // Log the request body to see what is being sent
     const id = new ObjectId(request.params.id);
     const { coverImage } = request.body;
-    console.log('Content-Length:', request.headers['content-length']);
+
 
     if (!coverImage) {
         return response.status(400).send({ error: 'Image is required' });
@@ -376,20 +374,41 @@ app.get('/sendedChat', async (request, response) => {
     response.send(result);
 })
 
-// app.get('/receivedChat', async (request, response) => {
-//     const {from, to} = request.query;
+app.get('/messages/:id', async (request, response) => {
+    const id = request.params.id;
 
-//     const result = await db.collection('sendMessage').find({
-//         sender: from,
-//         receiver: to 
-//     }).toArray()
+    const messages = await db.collection('sendMessage').find({
+        $or: [{sender: id}, {receiver: id}]
+    }).toArray()
 
-//     if(result.matchedCount == 0){
-//         return res.status(404).send({ error: 'Data not found' });
-//     }
-//     response.send(result);
-// })
-// Start the server
+    const opponent = new Set();
+    messages.forEach(element => {
+        if(element.receiver === id){
+            opponent.add(element.sender)
+        }
+        else{
+            opponent.add(element.receiver)
+        }
+    });
+
+
+    const opponentIds = [...opponent];
+
+
+    if (opponentIds.length === 0) {
+        console.log("No opponents found.");
+      } 
+      else {
+        const objectIds = opponentIds.map(id => new ObjectId(id)); 
+
+        const opponentsDetails = await db.collection("users").find({
+          _id: { $in: objectIds }
+        }).toArray();
+      
+        response.send(opponentsDetails)
+    }
+})
+
 const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

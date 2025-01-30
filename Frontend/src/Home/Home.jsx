@@ -9,12 +9,14 @@ import popular from '../assets/images/popular.png'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAd, faChain, faLightbulb, faPen, faPenFancy, faSignIn, faTachographDigital } from "@fortawesome/free-solid-svg-icons";
 import SocketContext from '../Sockets/SocketContext';
+import LoaderAnimation from '../Loader/Loader';
 
 function Home() {
     const [id, setId] = useState(null);
     const name = localStorage.getItem('name')
     const token = localStorage.getItem('accesstoken');
     const socket = useContext(SocketContext)
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
 
@@ -22,6 +24,7 @@ function Home() {
         async function fetchData() {
             const response = await fetch(`http://localhost:3000/home/${name}`)
             const result = await response.json();
+            setLoading(false)
             setId(result._id)
         }
 
@@ -60,12 +63,7 @@ function Home() {
         }
     }, []);
 
-    useEffect(() => {
-        console.log(id)
-        if (id) {
-            socket.emit('login', id)
-        }
-    }, [id])
+    {loading && <LoaderAnimation/>}
 
     return (
         <div className="Home overflow-x-hidden flex flex-col min-h-screen">
