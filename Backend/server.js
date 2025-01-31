@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { response } from 'express';
+import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import { setupWebRTC } from './webrtc.js';
@@ -12,6 +12,8 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import Chat from './chat.js';
+import nodemailer from 'nodemailer'
+import crypto from 'crypto'
 // Create an Express app
 const app = express();
 env.config();
@@ -55,16 +57,16 @@ MongoClient.connect(url).then(client => {
 });
 
 
-setupWebRTC(io);    
+setupWebRTC(io);
 Chat(io);
 
 app.get('/searchData/:data', async (request, response) => {
     const data = request.params.data;
     const record = await db.collection('users').find(
         {
-            $or:[
-                {description: { $regex: data, $options: 'i' }},
-                {skillprovide: {$regex: data, $options: 'i'}}
+            $or: [
+                { description: { $regex: data, $options: 'i' } },
+                { skillprovide: { $regex: data, $options: 'i' } }
             ]
         }
     ).toArray()
@@ -102,8 +104,8 @@ app.get('/userviewprofile/:id', async (request, response) => {
 
 app.get('/peopleviewprofile/:id', async (request, response) => {
     const id = new ObjectId(request.params.id);
-    try{
-        const record = await db.collection('users').findOne({_id: id});
+    try {
+        const record = await db.collection('users').findOne({ _id: id });
 
         if (!record) {
             return response.status(404).send({ message: 'User not found' });
@@ -111,7 +113,7 @@ app.get('/peopleviewprofile/:id', async (request, response) => {
 
         response.status(200).send(record)
     }
-    catch(error){
+    catch (error) {
         console.log(error)
     }
 })
@@ -171,6 +173,102 @@ app.post('/login', async (request, response) => {
     }
 });
 
+app.post('/send-email', async (request, response) => {
+    const { email, subject, message } = request.body;
+
+    try {
+
+        const insert = await db.collection('contactMessages').insertOne({
+            email, subject, message
+        })
+
+        if (insert.modifiedCount != 0) {
+            return response.status(200).send({ message: "Success to Send Message" })
+        }
+        else {
+            throw Error;
+        }
+    }
+    catch (error) {
+        console.log(error)
+        return response.status(500).send({ message: "Failed to Send Message" })
+    }
+})
+
+app.post('/forgotpassword', async (request, response) => {
+    const { email } = request.body;
+
+    try {
+        let record = await db.collection('users').findOne({ email });
+
+        if (!record) {
+            return response.status(400).send({ message: "Email Not Found" })
+        }
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 hour expiry
+
+        await db.collection('users').updateOne({ email }, { $set: { resetToken, resetTokenExpiry } })
+
+
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.MAILER_USER,
+                pass: process.env.MAILER_PASSWORD
+            }
+        })
+
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+        const mailOptions = {
+            from: process.env.MAILER_USER,
+            to: email,
+            subject: 'Password Reset',
+            text: `To reset your password, click the following link: ${resetUrl}`,
+        };
+
+        console.log(process.env.MAILER_USER, process.env.MAILER_PASSWORD)
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                return res.status(500).send({ message: 'Error sending email' });
+            }
+            response.status(200).send({ message: 'Password reset link sent in email' });
+        });
+    }
+    catch (error) {
+        return response.status(500).send('Internal Server Error');
+    }
+
+})
+
+app.post('/reset-password/:token', async (request, response) => {
+    const token = request.params?.token;
+    const password = request.body?.password
+
+    try {
+        const record = await db.collection('users').findOne({
+            resetToken: token,
+            resetTokenExpiry: { $gt: Date.now() }
+        })
+
+        if (!record) {
+            return response.status(400).send({message: 'Invalid or expired token'});
+        }
+
+        const encryptedPassword = await bcrypt.hash(password, 10)
+        await db.collection('users').updateOne(
+
+            { resetToken: token }, { $set: { password: encryptedPassword, resetToken: undefined, resetTokenExpiry: undefined } }
+        )
+
+        response.status(200).send({message: 'Password successfully reset'});
+    }
+    catch (error) {
+        res.status(500).send({message: 'Server error'});
+    }
+})
 
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
@@ -332,31 +430,31 @@ app.patch('/skillwant/:id', async (request, response) => {
 
 
 app.post('/sendmessagedb', async (request, response) => {
-    const {sender, receiver, message, timestamp} = request.body;
+    const { sender, receiver, message, timestamp } = request.body;
 
     const result = await db.collection('sendMessage').insertOne({
         sender,
         receiver,
-        message, 
+        message,
         timestamp
     })
 
-    if(result?.modifiedCount == 0){
-        return response.status(500).send({message: 'Something Went Wrong!'})
+    if (result?.modifiedCount == 0) {
+        return response.status(500).send({ message: 'Something Went Wrong!' })
     }
-    response.status(200).send({message: "Record Inserted"})
+    response.status(200).send({ message: "Record Inserted" })
 })
 
 
 app.get('/sendedChat', async (request, response) => {
-    const {from, to} = request.query;
+    const { from, to } = request.query;
 
     const result = await db.collection('sendMessage').find({
         sender: from,
-        receiver: to 
+        receiver: to
     }).toArray()
 
-    if(result.matchedCount == 0){
+    if (result.matchedCount == 0) {
         return res.status(404).send({ error: 'Data not found' });
     }
     response.send(result);
@@ -366,15 +464,15 @@ app.get('/messages/:id', async (request, response) => {
     const id = request.params.id;
 
     const messages = await db.collection('sendMessage').find({
-        $or: [{sender: id}, {receiver: id}]
+        $or: [{ sender: id }, { receiver: id }]
     }).toArray()
 
     const opponent = new Set();
     messages.forEach(element => {
-        if(element.receiver === id){
+        if (element.receiver === id) {
             opponent.add(element.sender)
         }
-        else{
+        else {
             opponent.add(element.receiver)
         }
     });
@@ -385,14 +483,14 @@ app.get('/messages/:id', async (request, response) => {
 
     if (opponentIds.length === 0) {
         console.log("No opponents found.");
-      } 
-      else {
-        const objectIds = opponentIds.map(id => new ObjectId(id)); 
+    }
+    else {
+        const objectIds = opponentIds.map(id => new ObjectId(id));
 
         const opponentsDetails = await db.collection("users").find({
-          _id: { $in: objectIds }
+            _id: { $in: objectIds }
         }).toArray();
-      
+
         response.send(opponentsDetails)
     }
 })

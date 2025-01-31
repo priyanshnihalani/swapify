@@ -22,6 +22,8 @@ function SignUp() {
         password: ''
     })
 
+    const [showToolTip, setShowToolTip] = useState(false);
+
     async function handleSubmit(e) {
         e.preventDefault();
         console.log(userData);
@@ -52,9 +54,19 @@ function SignUp() {
     async function handleFacebookLogin() {
         window.location.href = 'http://localhost:3000/auth/facebook';
     }
+
+    useEffect(() => {
+
+        if(showToolTip){
+            setTimeout(() => {
+                setShowToolTip(false)
+            }, 2000)
+        }
+
+    }, [showToolTip])
     return (
         <>
-            <div className="mt-20 ml-20 flex items-center cursor-pointer" onClick={() => navigate('/')}>
+            <div className="mt-20 ml-10 md:ml-20 flex items-center cursor-pointer" onClick={() => navigate('/')}>
                 <img src={logo} className="w-12 md:w-16 animate-logo" alt="logo" />
                 <h1 className="font-jost font-bold text-lg md:text-2xl text-[#252535]  transition-all duration-300">SWAPIFY</h1>
             </div>
@@ -74,11 +86,14 @@ function SignUp() {
                             />
 
                             <input
+                                onFocus={() => setShowToolTip(true)}
+                                onBlur={() => setShowToolTip(false)}
                                 type="email"
                                 placeholder="Enter Email"
                                 className="p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6C6C9B]"
                                 onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                             />
+                            {showToolTip && <div className=' w-1/4 bg-black text-white px-8 py-2 opacity-60 rounded-full absolute top-[16rem] transition-colors'>Make sure your email must be linked to particular provider like google, yahoo and more...</div>}
                             <input
                                 type="password"
                                 placeholder="Enter Password"

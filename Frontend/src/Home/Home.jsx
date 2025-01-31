@@ -22,6 +22,7 @@ function Home() {
                 const isTokenValid = decodeToken.exp > currentTime;
 
                 if (!isTokenValid) {
+                    navigate('/signin')
                     console.warn('Token expired');
                     localStorage.removeItem('accesstoken');
                 }

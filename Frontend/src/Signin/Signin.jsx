@@ -49,7 +49,7 @@ function SignIn() {
         <>
             <div className=''>
 
-                <div className="mt-20 ml-20 flex items-center cursor-pointer" onClick={() => navigate('/')}>
+                <div className="mt-20 ml-10 md:ml-20 flex items-center cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} className="w-12 md:w-16 animate-logo" alt="logo" />
                     <h1 className="font-jost font-bold text-lg md:text-2xl text-[#252535] transition-all duration-300">SWAPIFY</h1>
                 </div>
@@ -103,7 +103,9 @@ function SignIn() {
                                 </div>
                             </div>
                             <div className="flex flex-col md:flex-row items-center  justify-center  w-full md:justify-between mt-8">
-                                <p className="underline font-medium text-sm cursor-pointer">Forget Password?</p>
+                                <Link to="/forgotpassword">
+                                    <p className="underline font-medium text-sm cursor-pointer">Forget Password?</p>
+                                </Link>
                                 <Link to="/signup">
                                     <p className="underline font-medium text-sm cursor-pointer">Create New Account</p>
                                 </Link>

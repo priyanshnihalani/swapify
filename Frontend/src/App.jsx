@@ -18,6 +18,8 @@ import PeopleViewProfile from "./Profile/PeopleViewProfile";
 import NotFound from "./NotFound/NotFound";
 import Message from "./Messages/Messages";
 import LearnMore from "./LearnMore/LearnMore";
+import ForgotPassword from "./ForgotPassword/ForgotPassword";
+import ResetPassword from "./ResetPassword/ResetPassword";
 
 function App() {
     return (
@@ -43,6 +45,8 @@ function App() {
                 <Route path="/message" element={<Message/>} />
                 <Route path="/peopleviewprofile/:name" element={<PeopleViewProfile/>} />
                 <Route path="/learnmore" element={<LearnMore/>} />
+                <Route path="/forgotpassword" element={<ForgotPassword/>} />
+                <Route path="/reset-password/:token" element={<ResetPassword/>} />
                 <Route path = '*' element={<NotFound />} />
             </Routes>
         </Router>

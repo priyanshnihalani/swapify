@@ -2,8 +2,34 @@ import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
 import contact from "../assets/images/contact.png";
 import LeafletMapComponent from "../Map/Map";
+import { useForm } from 'react-hook-form'
+import MyMap from "../Map/Map";
+import { useEffect, useState } from "react";
+
 
 function Contact() {
+  
+  const { register, handleSubmit, formState: { errors }} = useForm();
+  const [hours, setHours] = useState(null);
+
+  useEffect(() => {
+    setHours(new Date().getHours()) 
+  }, [])
+
+  
+  async function submit(values){
+    const response = await fetch('http://localhost:3000/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({email: values.email, subject: values.subject, message: values.message})
+    })
+
+    const result = await response.json();
+    console.log(result);
+  } 
+
   return (
     <>
       <Header />
@@ -20,27 +46,33 @@ function Contact() {
             Have questions or need assistance? We're here to help.
           </h1>
 
-          <form className="w-full flex flex-col justify-center items-center space-y-4 py-20">
+          <form className="w-full flex flex-col justify-center items-center space-y-4 py-20" onSubmit={handleSubmit(submit)}>
             <input
               type="email"
               name="email"
               placeholder="Enter Your Email Address"
+              {...register('email', {required: "Email Required"})}
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
             />
+            <p className="text-red-600">{errors.email && errors.email.message}</p>
 
             <input
               type="text"
               name="subject"
               placeholder="Briefly Describe Your Query"
+              {...register('subject', {required: "Subject Required"})}
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
             />
+            <p className="text-red-600">{errors.subject && errors.subject.message}</p>
 
             <textarea
               name="message"
               placeholder="Type Your Message"
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
+              {...register('message', {required: "Message Required"})}
               rows={8}
             />
+            <p className="text-red-600">{errors.message && errors.message.message}</p>
 
             <button
               type="submit"
@@ -57,7 +89,7 @@ function Contact() {
 
         <section className="w-full">
           <div className="w-full bg-white px-4 sm:px-8 lg:px-20 pb-8">
-            <LeafletMapComponent />
+            <MyMap hours={hours}/>
           </div>
 
           <div className="space-y-4 px-5 md:px-0 py-12">

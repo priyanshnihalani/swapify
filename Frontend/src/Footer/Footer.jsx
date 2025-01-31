@@ -28,12 +28,12 @@ function Footer() {
                     <h1 className="font-extrabold">Contact Information</h1>
                     <ul className="mt-5 space-y-2">
                         <li>Phone: +91 7041958565</li>
-                        <li>Email: swapify@gmail.com</li>
+                        <li>Email: swapiify123@gmail.com</li>
                     </ul>
                 </div>
             </div>
             <div>
-                <p className="text-center mt-10 text-sm">&copy; 2025 Swapify Co. All Rights Reserved</p>
+                <p className="text-center mt-10 text-sm">&copy; 2025 Swapiify Co. All Rights Reserved</p>
             </div>
         </footer>
     );

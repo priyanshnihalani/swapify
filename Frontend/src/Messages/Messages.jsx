@@ -20,9 +20,15 @@ function Message() {
     const [id, setId] = useState(null)
     const [receiverId, setReceiverId] = useState(null);
     const socket = useContext(SocketContext);
-    // const [hasRefreshed, setHasRefreshed] = useState(false)
+    const [hastoken, setHastoken] = useState(false)
     const [myId, setMyId] = useState(null)
 
+    useEffect(() => {
+        const accesstoken = localStorage.getItem("accesstoken")
+        if (accesstoken) {
+            setHastoken(true);
+        }
+    }, [])
 
     useEffect(() => {
         const id = localStorage.getItem('id')
@@ -184,80 +190,88 @@ function Message() {
     return (
 
         <div>
-            {loading ? (
-                <LoaderAnimation />
-            ) : (
-                <>
-                    <Header />
-                    <div className="font-jost flex flex-col md:flex-row min-h-screen w-full bg-gray-100 p-">
-                        {/* Users List Section */}
-                        <div className="w-full md:w-1/3 bg-gray-100 rounded-lg p-4 overflow-y-auto max-h-screen mb-6 md:mb-0">
-                            <h2 className="text-xl font-bold mb-4">Users</h2>
-                            <div className="space-y-4">
-                                {data?.map((item, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg shadow-sm bg-gray-50 hover:bg-gray-200 transition">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-[50px] h-[50px] rounded-full bg-cover" style={{ backgroundImage: `url(${item.profileImage})` }}></div>
-                                            <div>
-                                                <h3 className="font-bold text-md">{item.name}</h3>
-                                                <p className="text-sm text-gray-600">{item.description}</p>
+            <Header />
+            {hastoken ? (<div>
+                {loading ? (
+                    <LoaderAnimation />
+                ) : (
+                    <>
+                        <Header />
+                        <div className="font-jost flex flex-col md:flex-row min-h-screen w-full bg-gray-100 p-">
+                            {/* Users List Section */}
+                            <div className="w-full md:w-1/3 bg-gray-100 rounded-lg p-4 overflow-y-auto max-h-screen mb-6 md:mb-0">
+                                <h2 className="text-xl font-bold mb-4">Users</h2>
+                                <div className="space-y-4">
+                                    {data?.map((item, index) => (
+                                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg shadow-sm bg-gray-50 hover:bg-gray-200 transition">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-[50px] h-[50px] rounded-full bg-cover" style={{ backgroundImage: `url(${item.profileImage})` }}></div>
+                                                <div>
+                                                    <h3 className="font-bold text-md">{item.name}</h3>
+                                                    <p className="text-sm text-gray-600">{item.description}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm" onClick={() => setChat(item.name, item._id)}>Chat</button>
+                                                <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm">View</button>
                                             </div>
                                         </div>
-                                        <div className="flex space-x-2">
-                                            <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm" onClick={() => setChat(item.name, item._id)}>Chat</button>
-                                            <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm">View</button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Chat Section */}
-                        <div className="w-full md:w-2/3 flex flex-col bg-white rounded-lg overflow-hidden h-[85vh]">
-                            {display ? (
-                                <div className="flex flex-col h-full">
-                                    {/* Chat Header */}
-                                    <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white p-4 flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-lg font-semibold">{name}</h2>
-                                            <p className="text-sm text-gray-300">{status}</p>
+                            {/* Chat Section */}
+                            <div className="w-full md:w-2/3 flex flex-col bg-white rounded-lg overflow-hidden h-[85vh]">
+                                {display ? (
+                                    <div className="flex flex-col h-full">
+                                        {/* Chat Header */}
+                                        <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white p-4 flex justify-between items-center">
+                                            <div>
+                                                <h2 className="text-lg font-semibold">{name}</h2>
+                                                <p className="text-sm text-gray-300">{status}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Chat Messages */}
+                                        <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg">
+                                            {messages?.map((message, index) => (
+                                                <div key={index} className={`flex ${message.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
+                                                    <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Chat Input */}
+                                        <div className="p-3 shadow-md border-t-2 rounded-br-md rounded-bl-md flex items-center bg-gray-100">
+                                            <input
+                                                type="text"
+                                                className="flex-1 p-2 border rounded-md outline-none"
+                                                placeholder="Type a message..."
+                                                value={message}
+                                                onChange={(e) => setMessage(e.target.value)}
+                                            />
+                                            <button onClick={() => sendMessage(id)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded-md">
+                                                <FontAwesomeIcon icon={faArrowCircleRight} size="lg" />
+                                            </button>
                                         </div>
                                     </div>
-
-                                    {/* Chat Messages */}
-                                    <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg">
-                                        {messages?.map((message, index) => (
-                                            <div key={index} className={`flex ${message.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
-                                                <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
-                                            </div>
-                                        ))}
+                                ) : (
+                                    <div className="flex justify-center items-center h-full">
+                                        <img src={messageImage} alt="message-image" className="max-w-[300px]" />
                                     </div>
+                                )}
+                            </div>
 
-                                    {/* Chat Input */}
-                                    <div className="p-3 shadow-md border-t-2 rounded-br-md rounded-bl-md flex items-center bg-gray-100">
-                                        <input
-                                            type="text"
-                                            className="flex-1 p-2 border rounded-md outline-none"
-                                            placeholder="Type a message..."
-                                            value={message}
-                                            onChange={(e) => setMessage(e.target.value)}
-                                        />
-                                        <button onClick={() => sendMessage(id)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded-md">
-                                            <FontAwesomeIcon icon={faArrowCircleRight} size="lg" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex justify-center items-center h-full">
-                                    <img src={messageImage} alt="message-image" className="max-w-[300px]" />
-                                </div>
-                            )}
                         </div>
-
-                    </div>
-                    <Footer />
-                </>
+                        <Footer />
+                    </>
+                )}
+            </div>) : (
+                <div className="relative min-h-screen">
+                    <img src={messageImage} className="w-[40%] alignment" />
+                </div>
             )}
+            <Footer />
         </div>
 
 

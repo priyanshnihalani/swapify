@@ -85,7 +85,7 @@ function LearnMore() {
             If you have any issues or need assistance, feel free to contact us at:
           </p>
           <p className="w-full md:w-3/4 mx-auto text-base md:text-lg mt-4">
-            Email: <a href="mailto:support@swapify.com" className="text-blue-500">swapify@gmail.com</a>
+            Email: <a href="swapify123@gmail.com" className="text-blue-500">swapify123@gmail.com</a>
           </p>
           <p className="w-full md:w-3/4 mx-auto text-base md:text-lg mt-4">
             Or visit our <Link to="/contactus" className="text-blue-500">contact page</Link> for more options.

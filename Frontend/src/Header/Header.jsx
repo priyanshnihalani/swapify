@@ -20,7 +20,7 @@ function Header() {
             <div className="flex items-center shadow-lg justify-between xl:justify-between pr-4 pl-0 md:px-10 pt-5 pb-2">
                 <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
                     <img src={logo} className="w-12 md:w-16 animate-logo" alt="logo" />
-                    <h1 className="font-jost font-bold text-lg md:text-2xl text-[#252535] transition-all duration-300">SWAPIFY</h1>
+                    <h1 className="font-jost font-bold text-lg md:text-2xl text-[#252535] transition-all duration-300">SWAPIIFY</h1>
                 </div>
 
                 {/* Mobile Menu Icon */}
