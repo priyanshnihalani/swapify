@@ -81,12 +81,12 @@ app.get('/searchData/:data', async (request, response) => {
     }
 })
 
-app.get('/userviewprofile/:name', async (request, response) => {
+app.get('/userviewprofile/:id', async (request, response) => {
 
-    const user = decodeURIComponent(request.params.name);
+    const id = new ObjectId(request.params.id);
 
     try {
-        const record = await db.collection('users').findOne({ name: user })
+        const record = await db.collection('users').findOne({ _id: id })
         if (!record) {
             return response.status(404).send({ message: 'User not found' });
         }
@@ -98,25 +98,13 @@ app.get('/userviewprofile/:name', async (request, response) => {
     }
 
 })
-app.get('/home/:name', async (request, response) => {
-    const user = decodeURIComponent(request.params.name);
-    try{
-        const record = await db.collection('users').findOne({name: user});
-        if (!record) {
-            return response.status(404).send({ message: 'User not found' });
-        }
 
-        response.status(200).send(record)
-    }
-    catch(error){
-        console.log(error)
-    }
-})
 
-app.get('/peopleviewprofile/:name', async (request, response) => {
-    const user = decodeURIComponent(request.params.name);
+app.get('/peopleviewprofile/:id', async (request, response) => {
+    const id = new ObjectId(request.params.id);
     try{
-        const record = await db.collection('users').findOne({name: user});
+        const record = await db.collection('users').findOne({_id: id});
+
         if (!record) {
             return response.status(404).send({ message: 'User not found' });
         }

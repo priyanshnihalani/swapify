@@ -33,10 +33,10 @@ function UserViewProfile() {
     }
     useEffect(() => {
 
-        const name = localStorage.getItem('name');
-        const encodedName = encodeURIComponent(name)
+        const id = localStorage.getItem('id');
+
         async function collectData() {
-            const response = await fetch(`http://localhost:3000/userviewprofile/${encodedName}`)
+            const response = await fetch(`http://localhost:3000/userviewprofile/${id}`)
             const result = await response.json()
             console.log(result)
             setData(result)

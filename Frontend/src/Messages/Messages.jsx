@@ -6,6 +6,8 @@ import SocketContext from "../Sockets/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
 import LoaderAnimation from "../Loader/Loader";
+import Header from "../Header/Header";
+import Footer from "../Footer/Footer";
 
 function Message() {
     const [name, setName] = useState(null);
@@ -35,7 +37,7 @@ function Message() {
     useEffect(() => {
 
         async function fetchData() {
-            if(!myId){
+            if (!myId) {
                 setLoading(true)
             }
 
@@ -47,7 +49,7 @@ function Message() {
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
-                setLoading(false); 
+                setLoading(false);
             }
         }
 
@@ -107,7 +109,7 @@ function Message() {
         } catch (error) {
             console.error("Error fetching messages:", error);
         }
-        finally{
+        finally {
             setLoading(false)
         }
     }
@@ -130,7 +132,7 @@ function Message() {
         } catch (error) {
             console.error("Error fetching messages:", error);
         }
-        finally{
+        finally {
             setLoading(false)
         }
     }
@@ -183,12 +185,13 @@ function Message() {
 
         <div>
             {loading ? (
-                    <LoaderAnimation />
+                <LoaderAnimation />
             ) : (
                 <>
-                    <div className="font-jost flex min-h-screen w-full bg-gray-100 p-6">
+                    <Header />
+                    <div className="font-jost flex flex-col md:flex-row min-h-screen w-full bg-gray-100 p-">
                         {/* Users List Section */}
-                        <div className="w-1/3 bg-white rounded-lg p-4 overflow-y-auto max-h-screen">
+                        <div className="w-full md:w-1/3 bg-gray-100 rounded-lg p-4 overflow-y-auto max-h-screen mb-6 md:mb-0">
                             <h2 className="text-xl font-bold mb-4">Users</h2>
                             <div className="space-y-4">
                                 {data?.map((item, index) => (
@@ -210,7 +213,7 @@ function Message() {
                         </div>
 
                         {/* Chat Section */}
-                        <div className="w-2/3 flex flex-col bg-white rounded-lg overflow-hidden ml-6">
+                        <div className="w-full md:w-2/3 flex flex-col bg-white rounded-lg overflow-hidden h-[85vh]">
                             {display ? (
                                 <div className="flex flex-col h-full">
                                     {/* Chat Header */}
@@ -222,16 +225,16 @@ function Message() {
                                     </div>
 
                                     {/* Chat Messages */}
-                                    <div className="flex-1 p-4 overflow-y-auto space-y-2 bg-gray-200 style-bg">
+                                    <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg">
                                         {messages?.map((message, index) => (
                                             <div key={index} className={`flex ${message.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
-                                                <p className={`px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
+                                                <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
                                             </div>
                                         ))}
                                     </div>
 
                                     {/* Chat Input */}
-                                    <div className="p-3 shadow-md border-b-2 rounded-br-md rounded-bl-md flex items-center bg-gray-100">
+                                    <div className="p-3 shadow-md border-t-2 rounded-br-md rounded-bl-md flex items-center bg-gray-100">
                                         <input
                                             type="text"
                                             className="flex-1 p-2 border rounded-md outline-none"
@@ -239,7 +242,7 @@ function Message() {
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
                                         />
-                                        <button onClick={() => sendMessage(id)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B]  text-white px-4 py-2 rounded-md">
+                                        <button onClick={() => sendMessage(id)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded-md">
                                             <FontAwesomeIcon icon={faArrowCircleRight} size="lg" />
                                         </button>
                                     </div>
@@ -250,9 +253,14 @@ function Message() {
                                 </div>
                             )}
                         </div>
+
                     </div>
-                </>)}
+                    <Footer />
+                </>
+            )}
         </div>
+
+
     )
 }
 export default Message

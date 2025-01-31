@@ -42,6 +42,7 @@ function SignUp() {
             console.log(result)
             localStorage.setItem('name', result.name);
             localStorage.setItem('accesstoken', result.accesstoken)
+            localStorage.setItem('id', result._id)
             navigate('/');
         }
         catch (error) {

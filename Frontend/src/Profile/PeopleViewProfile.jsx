@@ -46,7 +46,7 @@ function PeopleViewProfile() {
     async function fetchUserData() {
       try {
         const response = await fetch(
-          `http://localhost:3000/peopleviewprofile/${username}`
+          `http://localhost:3000/peopleviewprofile/${myId}`
         );
         const result = await response.json();
         console.log(result)
@@ -152,8 +152,8 @@ function PeopleViewProfile() {
     if (receiveMessages || sendMessages) {
 
       const allMessages = [...receiveMessages, ...sendMessages];
-
-
+      let newArray = allMessages.sort((a, b) => a.timestamp - b.timestamp);
+      setMessages(newArray);
 
       console.log(allMessages);
     }
@@ -314,7 +314,7 @@ function PeopleViewProfile() {
                 <div className="messages">
                   {messages.map((message, index) => (
                     <div key={index} className={message.type === 'sent' ? 'flex justify-end' : 'flex justify-start'}>
-                       <p className={`px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
+                       <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
                     </div>
                   ))}
                 </div>

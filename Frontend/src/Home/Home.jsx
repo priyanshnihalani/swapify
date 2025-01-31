@@ -1,4 +1,3 @@
-import React, { useContext, useState } from 'react';
 import { useEffect } from "react";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
@@ -8,29 +7,12 @@ import features from '../assets/images/features.png'
 import popular from '../assets/images/popular.png'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAd, faChain, faLightbulb, faPen, faPenFancy, faSignIn, faTachographDigital } from "@fortawesome/free-solid-svg-icons";
-import SocketContext from '../Sockets/SocketContext';
-import LoaderAnimation from '../Loader/Loader';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
-    const [id, setId] = useState(null);
-    const name = localStorage.getItem('name')
     const token = localStorage.getItem('accesstoken');
-    const socket = useContext(SocketContext)
-    const [loading, setLoading] = useState(true);
-
+    const navigate = useNavigate();
     useEffect(() => {
-
-
-        async function fetchData() {
-            const response = await fetch(`http://localhost:3000/home/${name}`)
-            const result = await response.json();
-            setLoading(false)
-            setId(result._id)
-        }
-
-        if (name) {
-            fetchData()
-        }
 
         if (token) {
             try {
@@ -63,7 +45,6 @@ function Home() {
         }
     }, []);
 
-    {loading && <LoaderAnimation/>}
 
     return (
         <div className="Home overflow-x-hidden flex flex-col min-h-screen">
@@ -80,7 +61,7 @@ function Home() {
                         <button className="mx-auto mt-6 bg-gradient-to-r p-3 rounded-md md:px-6 from-[#252535] to-[#6C6C9B] 
                             font-extrabold text-white md:mt-10 text-md 
                             animate-bounce hover:animate-none 
-                            transition-transform duration-300 hover:scale-110">
+                            transition-transform duration-300 hover:scale-110" onClick={() => navigate('/learnmore')}>
                             Learn More
                         </button>
                     </div>

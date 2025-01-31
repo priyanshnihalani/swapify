@@ -17,6 +17,7 @@ import Chat from "./Chat/Chat";
 import PeopleViewProfile from "./Profile/PeopleViewProfile";
 import NotFound from "./NotFound/NotFound";
 import Message from "./Messages/Messages";
+import LearnMore from "./LearnMore/LearnMore";
 
 function App() {
     return (
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/chatroom" element={<Chat/>} />
                 <Route path="/message" element={<Message/>} />
                 <Route path="/peopleviewprofile/:name" element={<PeopleViewProfile/>} />
+                <Route path="/learnmore" element={<LearnMore/>} />
                 <Route path = '*' element={<NotFound />} />
             </Routes>
         </Router>
