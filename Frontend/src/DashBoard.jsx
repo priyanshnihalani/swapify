@@ -30,6 +30,7 @@ function DashBoard() {
             console.log("No room ID entered!");
         }
     }
+    
     function handleGenerate() {
         setGenerateRoomId(Math.round((Math.random() * 200)) + 1);
         setHost({ name, Ishost: true });

@@ -65,7 +65,6 @@ function Header() {
                         <li className="cursor-pointer"><Link to={'/aboutus'}>About</Link></li>
                         <li className="cursor-pointer"><Link to={'/browseskill'}>Browse Skills </Link></li>
                         <li className="cursor-pointer"><Link to={'/message'}>Messages</Link></li>
-                        <li><Link to={'/dashboard'}>DashBoard</Link></li>
                     </ul>
                     <ul className="flex flex-col justify-center mt-5 space-y-2 font-semibold text-sm md:text-lg md:px-20 px-6 text-[#252535]">
                         {!localStorage.getItem('accesstoken') ? (

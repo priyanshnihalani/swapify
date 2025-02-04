@@ -52,13 +52,14 @@ let db;
 MongoClient.connect(url).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
+    Chat(io, db, ObjectId);
+
 }).catch((error) => {
     console.log(error);
 });
 
 
 setupWebRTC(io);
-Chat(io);
 
 app.get('/searchData/:data', async (request, response) => {
     const data = request.params.data;
@@ -148,6 +149,7 @@ app.post('/register', async (request, response) => {
     }
 });
 
+
 app.post('/login', async (request, response) => {
     try {
         const { email, password } = request.body;
@@ -193,6 +195,50 @@ app.post('/send-email', async (request, response) => {
         console.log(error)
         return response.status(500).send({ message: "Failed to Send Message" })
     }
+})
+
+app.get('/block', async (request, response) => {
+    const { idToBlock, idWantToBlock } = request.query;
+
+    let blockArray = [];
+    blockArray.push(idToBlock);
+
+    try {
+
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(idWantToBlock) },
+            { $set: { BlockUsers: blockArray } }
+        )
+
+        return response.status(200).send({ message: "Success to Block User" })
+
+    }
+    catch (error) {
+        return response.status(500).send({ message: "Failed to Block User Message" })
+    }
+
+
+})
+
+app.get('/unblock', async (request, response) => {
+    const { idToUnBlock, idWantToUnBlock } = request.query;
+
+
+    try {
+
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(idWantToUnBlock) },
+            { $pull: { BlockUsers: idToUnBlock } }
+        )
+
+        return response.status(200).send({ message: "Success to UnBlock User" })
+
+    }
+    catch (error) {
+        return response.status(500).send({ message: "Failed to UnBlock User Message" })
+    }
+
+
 })
 
 app.post('/forgotpassword', async (request, response) => {
@@ -254,7 +300,7 @@ app.post('/reset-password/:token', async (request, response) => {
         })
 
         if (!record) {
-            return response.status(400).send({message: 'Invalid or expired token'});
+            return response.status(400).send({ message: 'Invalid or expired token' });
         }
 
         const encryptedPassword = await bcrypt.hash(password, 10)
@@ -263,10 +309,10 @@ app.post('/reset-password/:token', async (request, response) => {
             { resetToken: token }, { $set: { password: encryptedPassword, resetToken: undefined, resetTokenExpiry: undefined } }
         )
 
-        response.status(200).send({message: 'Password successfully reset'});
+        response.status(200).send({ message: 'Password successfully reset' });
     }
     catch (error) {
-        res.status(500).send({message: 'Server error'});
+        res.status(500).send({ message: 'Server error' });
     }
 })
 
@@ -405,13 +451,13 @@ app.patch('/skillwant/:id', async (request, response) => {
     const { id } = request.params;
     const { skillwant } = request.body;
 
-    // Check if `skillwant` exists and is an array
+
     if (!skillwant || !Array.isArray(skillwant)) {
         return response.status(400).send({ error: 'Invalid or missing skillwant data' });
     }
 
     try {
-        // Example: Update the database
+
         const updatedData = await db.collection('users').updateOne(
             { _id: new ObjectId(id) },
             { $set: { skillwant } },

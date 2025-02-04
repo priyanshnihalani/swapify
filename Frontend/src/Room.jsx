@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState, useRef, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faL, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCut, faL, faMicrophone, faMicrophoneSlash, faPhoneSlash, faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import logo from './assets/images/logo2.png'
 import { useNavigate } from "react-router-dom";
 import SocketContext from "./Sockets/SocketContext";
-
+import ReactPlayer from 'react-player'
+import './Room.css'
 function Room() {
+
     const [microphone, setMicrophone] = useState(true)
     const [camera, setCamera] = useState(true)
     const [name, setName] = useState('')
@@ -27,6 +29,7 @@ function Room() {
     const [host, setHost] = useState(true)
     const [isJoin, setIsJoin] = useState(false)
     const [inMeet, setInMeet] = useState(false);
+    const [streamUrl, setStreamUrl] = useState(false)
     // Step 1: Initialize media streams
     const initializeMedia = async (videoenabled = true, audioenabled = true) => {
         try {
@@ -71,55 +74,78 @@ function Room() {
                 iceCandidatePoolSize: 10
             });
 
-            // Add local tracks immediately
-            if (localStream) {
-                localStream.getTracks().forEach(track => {
-                    peerRef.current.addTrack(track, localStream);
-                });
-            }
-
-            // Handle incoming tracks
-            peerRef.current.ontrack = (event) => {
-                if (event.streams && event.streams[0]) {
-                    const stream = event.streams[0];
-                    if (stream.getVideoTracks().length > 0 || stream.getAudioTracks().length > 0) {
-                        setRemoteStream(stream);
-                    } else {
-                        console.error('Remote stream has no tracks:', stream);
-                    }
-                }
-            };
-
-            // Improved ICE candidate handling
             peerRef.current.onicecandidate = (event) => {
-                const targetId = receiverId || callerId;
-                if (event.candidate && targetId) {
+                if (event.candidate && (receiverId || callerId)) {
                     socket.emit("ice-candidate", {
-                        to: targetId,
+                        to: receiverId || callerId,
                         candidate: event.candidate
                     });
                 }
             };
 
-            // Connection state monitoring
             peerRef.current.onconnectionstatechange = () => {
                 setIsConnected(peerRef.current.connectionState === 'connected');
             };
+
+            peerRef.current.ontrack = (event) => {
+                console.log('Track received:', {
+                    trackKind: event.track.kind,
+                    trackEnabled: event.track.enabled,
+                    trackMuted: event.track.muted,
+                    hasStreams: !!event.streams,
+                    streamCount: event.streams?.length
+                });
+
+                if (event.streams && event.streams[0]) {
+                    const stream = event.streams[0];
+
+                    // Immediately try to play the stream
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = stream;
+
+                        // Force a play attempt
+                        const playPromise = remoteVideoRef.current.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log('Video started playing successfully');
+                            }).catch(error => {
+                                console.log('Error playing video:', error);
+                            });
+                        }
+                    }
+
+                    setRemoteStream(stream);
+                }
+            };
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerRef.current.addTrack(track, localStream);
+                });
+            }
         }
-    }, [localStream, remoteStream, remoteVideoRef.current, peerRef.current, socket, receiverId, callerId]);
+    }, [localStream, socket, receiverId, callerId]);
+
+
 
     useEffect(() => {
         if (remoteStream && remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-            remoteVideoRef.current.play().catch((error) => {
-                console.error('Error playing remote video:', error);
+            console.log('Remote stream updated:', {
+                active: remoteStream.active,
+                tracks: remoteStream.getTracks().map(track => ({
+                    kind: track.kind,
+                    enabled: track.enabled,
+                    muted: track.muted
+                }))
             });
+
+            // Try setting srcObject again
+            remoteVideoRef.current.srcObject = remoteStream;
         }
     }, [remoteStream]);
 
-
-    useEffect(() => { 
-        if(peerRef.current?.connectionState == 'connected'){
+    useEffect(() => {
+        if (peerRef.current?.connectionState == 'connected') {
             setInMeet(true)
         }
     }, [peerRef.current?.connectionState]);
@@ -179,7 +205,7 @@ function Room() {
     }, [socket]);
 
 
-    
+
 
     // Step 4: Improved call handling
     const handleCall = async () => {
@@ -206,24 +232,25 @@ function Room() {
     // Step 5: Handle offer and answer
     const handleOffer = useCallback(async ({ from, offer }) => {
         try {
-            if (!connectionInitialized.current) {
+            if (!peerRef.current) {
                 initializePeerConnection();
-                connectionInitialized.current = true;
             }
+
             setIsJoin(true);
             setCallerId(from);
 
-
             await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-            console.log(offer)
+
             const answer = await peerRef.current.createAnswer();
             await peerRef.current.setLocalDescription(answer);
-            socket.emit('answer', { to: callerId, answer });
+
+            socket.emit('answer', { to: from, answer });
         } catch (err) {
             console.error('Error handling offer:', err);
-            connectionInitialized.current = false;
         }
     }, [socket, initializePeerConnection]);
+
+
 
 
     const handleAnswer = useCallback(async ({ from, answer }) => {
@@ -235,44 +262,132 @@ function Room() {
         }
     }, []);
 
+    // Replace the existing toggleCamera function with this updated version
     async function toggleCamera() {
         const newCameraState = !camera;
         setCamera(newCameraState);
-    
-        // Stop and remove existing local stream tracks
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-        }
-    
-        // Reinitialize media stream
-        await initializeMedia(newCameraState, microphone);
-    
-        // Recreate peer connection if needed
-        if (peerRef.current) {
-            // Close existing peer connection
-            peerRef.current.close();
-            peerRef.current = null;
-            connectionInitialized.current = false;
-    
-            // Reinitialize peer connection
-            initializePeerConnection();
-    
-            // Renegotiate connection if users are connected
-            if (receiverId || callerId) {
-                handleCall();
+
+        try {
+            // Ensure we're working with the current local stream
+            if (localStream) {
+                const videoTracks = localStream.getVideoTracks();
+                if (videoTracks.length > 0 && !newCameraState) {
+                    // If turning off the camera, disable the video track
+                    videoTracks.forEach(track => track.enabled = false);
+                } else if (newCameraState) {
+                    // If turning the camera back on, get a new stream
+                    const newStream = await getNewMediaStream(true, microphone);
+
+                    // Set the local stream properly
+                    setLocalStream(newStream);
+                    const videoTrack = newStream.getVideoTracks()[0];
+
+                    // Check if the video track is properly added to the video element
+                    const videoElement = document.querySelector("#localVideo"); // Replace with your video element selector
+                    if (videoElement) {
+                        videoElement.srcObject = newStream;
+                    }
+
+                    // Update peer connection if it's connected
+                    if (peerRef.current && peerRef.current.connectionState === 'connected') {
+                        const senders = peerRef.current.getSenders();
+                        const videoSender = senders.find(sender => sender.track?.kind === "video");
+                        if (videoSender) {
+                            await videoSender.replaceTrack(videoTrack);
+                        }
+                    }
+                }
+            } else if (newCameraState) {
+                // If there's no current stream, create a new stream with video enabled
+                const newStream = await getNewMediaStream(true, microphone);
+                setLocalStream(newStream);
             }
+        } catch (err) {
+            console.error("Error toggling camera:", err);
+            // Revert camera state on error
+            setCamera(!newCameraState);
         }
     }
 
-    function toggleMicrophone() {
-        setMicrophone(prevState => !prevState);
-        if (localStream) {
-            const audioTracks = localStream.getAudioTracks();
-            audioTracks.forEach(track => {
-                track.enabled = !track.enabled;
-            });
+
+
+    async function toggleMicrophone() {
+        const newMicState = !microphone;
+        setMicrophone(newMicState);
+
+        try {
+            if (localStream) {
+                const audioTracks = localStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    audioTracks.forEach(track => {
+                        track.enabled = newMicState; // Enable/disable based on new state
+                    });
+                } else {
+                    // If no audio tracks exist, get a new stream
+                    await getNewMediaStream(camera, newMicState);
+                }
+            } else if (newMicState) {
+                await getNewMediaStream(camera, newMicState);
+            }
+        } catch (err) {
+            console.error("Error toggling microphone:", err);
+            setMicrophone(!newMicState); // Revert state on error
         }
     }
+
+    async function getNewMediaStream(videoEnabled, audioEnabled) {
+        try {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+
+            if (!videoEnabled && !audioEnabled) {
+                setLocalStream(null);
+                return;
+            }
+
+            const constraints = {
+                video: videoEnabled ? { facingMode: "user" } : false,
+                audio: audioEnabled
+            };
+
+            const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+            setLocalStream(newStream);
+
+            // If peer connection exists and is active, replace tracks
+            if (peerRef.current && peerRef.current.connectionState === 'connected') {
+                const senders = peerRef.current.getSenders();
+
+                // Replace video track
+                if (videoEnabled) {
+                    const videoTrack = newStream.getVideoTracks()[0];
+                    const videoSender = senders.find(sender => sender.track?.kind === "video");
+                    if (videoSender && videoTrack) {
+                        await videoSender.replaceTrack(videoTrack);
+                    }
+                }
+
+                // Replace audio track
+                if (audioEnabled) {
+                    const audioTrack = newStream.getAudioTracks()[0];
+                    const audioSender = senders.find(sender => sender.track?.kind === "audio");
+                    if (audioSender && audioTrack) {
+                        await audioSender.replaceTrack(audioTrack);
+                    }
+                }
+            }
+
+            return newStream; // Ensure the new stream is returned
+        } catch (err) {
+            console.error("Error getting media stream:", err);
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            setLocalStream(null);
+            throw err; // Propagate error to handle state reversions
+        }
+    }
+
 
     // Step 6: Set up offer/answer handlers
     useEffect(() => {
@@ -285,6 +400,64 @@ function Room() {
             socket.off('answer');
         };
     }, [socket, handleOffer, handleAnswer]);
+
+
+    const cleanupAndNavigate = () => {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => track.stop());
+        }
+        if (peerRef.current) {
+            peerRef.current.close();
+            peerRef.current = null;
+        }
+
+        setLocalStream(null);
+        setRemoteStream(null);
+        setIsConnected(false);
+
+        socket.disconnect();
+        navigate('/meetboard');
+    };
+
+    useEffect(() => {
+        socket.on('endCall', cleanupAndNavigate);
+
+        return () => {
+            socket.off('endCall', cleanupAndNavigate);
+        };
+    }, [socket, localStream, remoteStream]);
+
+    function callEnd() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => track.stop());
+        }
+
+        if (peerRef.current) {
+            peerRef.current.ontrack = null;
+            peerRef.current.onicecandidate = null;
+            peerRef.current.onconnectionstatechange = null;
+            peerRef.current.close();
+            peerRef.current = null;
+        }
+
+        setLocalStream(null);
+        setRemoteStream(null);
+        setIsConnected(false);
+        connectionInitialized.current = false;
+
+        if (host) {
+            socket.emit('endCall');
+        }
+        socket.disconnect();
+        navigate('/meetboard');
+    }
 
     return (!host && inMeet == false ? (
         <div className="overflow-hidden font-jost min-h-screen">
@@ -304,8 +477,8 @@ function Room() {
                             <video
                                 ref={localVideoRef}
                                 autoPlay
-                                playsInline
                                 muted
+                                playsInline
                                 className="scale-x-[-1] rounded-xl sm:rounded-3xl w-full h-full object-cover"
                             />
                             : <h1 className="flex justify-center items-center min-h-full text-black text-4xl">{name}</h1>
@@ -357,82 +530,111 @@ function Room() {
     ) : <>
         <div className="relative w-full h-screen bg-gray-900 text-white ">
             {/* Remote Video */}
-            {isJoin && <button onClick={handleCall}>admit</button>}
-            {
-                remoteStream ?
+            {/* {isJoin && <button onClick={handleCall}>admit</button>} */}
 
-                    <div className="alignment w-[90%] rounded-lg  h-[80%] bg-black rounded-b-lg overflow-hidden">
-                        {console.log(remoteStream)}
-                        <video
-                            ref={remoteVideoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            className="w-full h-full object-cover rounded-b-lg"
-                            style={{}}
-                            onError={(e) => {
-                                console.error('Remote video error:', e);
-                            }}
-                        />
-                        <div className="absolute top-2 left-2 bg-black/50 text-white px-3 py-1 rounded-md text-sm">
-                            Remote User
+
+            <div className="relative w-full h-screen bg-[#252535] text-white overflow-hidden">
+                {remoteStream ? (
+                    <div className="alignment relative w-full h-[85vh] p-4 flex justify-center items-center">
+                        <div className="relative w-[90vw] h-full rounded-xl overflow-hidden bg-gray-800">
+                            <div className="object-cover">
+                                <ReactPlayer
+                                    url={remoteStream}
+                                    playing
+                                    width="100%"
+                                    height="100%"
+                                    style={{
+                                        transform: "scaleX(-1)",
+                                    }}
+
+                                    light={false}
+                                    controls={false}
+                                    className="remoteVideo"
+                                />
+                            </div>
+                            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                <span className="text-sm font-medium">{users}</span>
+                            </div>
                         </div>
                     </div>
-                    : <>
-                    </>
-            }
-
-            {/* Local Video */}
-
-            <div className={`${remoteVideoRef.current == null ? 'alignment rounded-lg w-[90%] aspect-video' : 'absolute bottom-4 right-4 w-1/4 aspect-video bg-black rounded-lg overflow-hidden shadow-lg'} `}>
-                {camera ? (
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className={` rounded-lg w-full h-full object-cover scale-x-[-1]`}
-                    />
-                ) : (
-                    <div className="remotealignment rounded-lg w-[90%] aspect-video bg-gray-800 flex items-center justify-center h-full text-xl font-semibold text-gray-400">
-                        {name || "You"}
-                    </div>
-                )}
-
-                {
-                    camera &&
-                    <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-sm">
-                        {name || "You"}
-                    </div>
+                ) :
+                    (
+                        <>
+                            <h1 className="text-white">{users}</h1>
+                        </>
+                    )
                 }
+
+                {/* Local Video Container */}
+                <div className={`
+        ${!remoteStream ? 'w-full h-full p-4' : 'absolute bottom-4 right-4 w-80  aspect-video'} 
+        transition-all duration-300 ease-in-out
+      `}>
+                    <div className="relative w-full h-full rounded-xl overflow-hidden">
+                        <div>
+                            {camera ? (
+                                <video
+                                    id="localVideo"
+                                    ref={localVideoRef}
+                                    autoPlay
+                                    muted={remoteStream == null ? true : false}
+                                    playsInline
+                                    className="scale-x-[-1] rounded-xl sm:rounded-xl w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="alignment w-full flex items-center justify-center min-h-80 bg-gray-800">
+                                    <span className="text-xl font-semibold text-gray-400">{name || "You"}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg">
+                            <span className="text-sm font-medium">{name || "You"}</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* Controls */}
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-white/60 backdrop-blur-lg px-6 py-3 rounded-2xl">
+                    <button
+                        onClick={toggleMicrophone}
+                        className={`
+            w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
+            ${microphone ? 'bg-gray-900 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}
+          `}
+                    >
+                        <FontAwesomeIcon
+                            icon={microphone ? faMicrophone : faMicrophoneSlash}
+                            className="text-lg"
+                        />
+                    </button>
+                    <button
+                        onClick={toggleCamera}
+                        className={`
+            w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
+            ${camera ? 'bg-gray-900 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}
+          `}
+                    >
+                        <FontAwesomeIcon
+                            icon={camera ? faVideo : faVideoSlash}
+                            className="text-lg"
+                        />
+                    </button>
+
+                    {inMeet || host ? <button
+                        onClick={callEnd}
+                        className={`
+            w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
+            bg-red-600 hover:bg-red-700`}
+                    >
+                        <FontAwesomeIcon
+                            icon={faPhoneSlash}
+                            className="text-lg"
+                        />
+                    </button> : <></>}
+                </div>
             </div>
 
-            {/* Floating Controls */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center space-x-4 bg-black/70 px-6 py-3 rounded-full">
-                {/* Microphone Button */}
-                <button
-                    className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition ${microphone ? "bg-gray-800 hover:bg-gray-700" : "bg-red-600 hover:bg-red-700"
-                        }`}
-                    onClick={toggleMicrophone}
-                >
-                    <FontAwesomeIcon
-                        icon={microphone ? faMicrophone : faMicrophoneSlash}
-                        className="text-lg text-white"
-                    />
-                </button>
-
-                {/* Camera Button */}
-                <button
-                    className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition ${camera ? "bg-gray-800 hover:bg-gray-700" : "bg-red-600 hover:bg-red-700"
-                        }`}
-                    onClick={toggleCamera}
-                >
-                    <FontAwesomeIcon
-                        icon={camera ? faVideo : faVideoSlash}
-                        className="text-lg text-white"
-                    />
-                </button>
-            </div>
         </div>
 
 

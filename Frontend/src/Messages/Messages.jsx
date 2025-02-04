@@ -4,7 +4,7 @@ import './Messages.css'
 import { useParams } from "react-router-dom";
 import SocketContext from "../Sockets/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowCircleRight, faCircleStop, faCommentDots, faHandDots, faListDots } from "@fortawesome/free-solid-svg-icons";
 import LoaderAnimation from "../Loader/Loader";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
@@ -22,6 +22,7 @@ function Message() {
     const socket = useContext(SocketContext);
     const [hastoken, setHastoken] = useState(false)
     const [myId, setMyId] = useState(null)
+    const [isblock, setisBlock] = useState(false)
 
     useEffect(() => {
         const accesstoken = localStorage.getItem("accesstoken")
@@ -52,6 +53,7 @@ function Message() {
                 const response = await fetch(`http://localhost:3000/messages/${myId}`);
                 const result = await response.json();
                 setData(result);
+                console.log(result)
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -143,7 +145,21 @@ function Message() {
         }
     }
 
+    async function fetchUserData(myId) {
+        const response = await fetch(`http://localhost:3000/userviewprofile/${myId}`)
+
+        const result = await response.json()
+        return result;
+    }
+
     async function setChat(name, id) {
+
+        let userData = await fetchUserData(myId)
+        userData?.BlockUsers?.map((ids) => {
+            if (id === ids) {
+                setisBlock("UnBlock")
+            }
+        })
 
         setDisplay(!display)
         setName(name)
@@ -153,51 +169,111 @@ function Message() {
         let sended = await fetchSendedChatData(myId, id)
         let received = await fetchReceivedChatData(id, myId)
 
+
         const allMessages = [...sended, ...received]
         let newArray = allMessages.sort((a, b) => a.timestamp - b.timestamp);
         setMessages(newArray);
     }
 
 
-    function sendMessage(id) {
+    function sendMessage(id, name, message) {
+        let timestamp;
+
+        async function sendMessageDB() {
+            const response = await fetch('http://localhost:3000/sendmessagedb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: myId,
+                    receiver: id,
+                    message,
+                    timestamp
+                })
+            })
+
+            const result = await response.json()
+            console.log(result);
+        }
+
+
         if (message.trim() && id) {
-            socket.emit('send-message', id, message);
+            socket.emit('send-message', myId, id, message);
             setMessages(prevMessages => [...prevMessages, { message: message, type: 'sent' }]);
             setMessage('');
-            const timestamp = new Date().getTime();
+            timestamp = new Date().getTime();
+        }
 
-            async function sendMessageDB() {
-                const response = await fetch('http://localhost:3000/sendmessagedb', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sender: myId,
-                        receiver: id,
-                        message,
-                        timestamp
-                    })
-                })
-
-                const result = await response.json()
-                console.log(result);
+        const item = data?.filter((item) => {
+            if (item._id == id) {
+                console.log(item)
+                return item
             }
+        })
 
+        console.log(item[0]?.BlockUsers)
+        if (item[0]?.BlockUsers?.length == 0) {
+            console.log("Empty")
             sendMessageDB()
         }
+        else if (item[0]?.BlockUsers == undefined) {
+            console.log("Not Exist")
+            sendMessageDB()
+        }
+        else {
+            console.log("Not Match")
+            item[0]?.BlockUsers?.map((item) => {
+                console.log("yes")
+                if (item != myId) {
+                    console.log("yes")
+                    sendMessageDB()
+                }
+            })
+        }
     }
+
+    async function handleBlock() {
+        setisBlock(prevIsBlock => {
+            const newIsBlock = !prevIsBlock;  
+            console.log("New isBlock value:", newIsBlock);
+    
+            if (!prevIsBlock) {  
+                fetch(`http://localhost:3000/block/?idToBlock=${id}&idWantToBlock=${myId}`)
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log("Blocked");
+                        if (result.message !== "Success to Block User") {
+                            setisBlock(prev => !prev); 
+                        }
+                    });
+            } else { 
+                fetch(`http://localhost:3000/unblock/?idToUnBlock=${id}&idWantToUnBlock=${myId}`)
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(result);
+                        if (result.message !== "Success to Unblock User") {
+                            setisBlock(prev => !prev); 
+                        }
+                    });
+            }
+            
+            return newIsBlock; 
+        });
+    }
+    
+
     return (
 
         <div>
-            <Header />
+            {hastoken || <Header />}
             {hastoken ? (<div>
                 {loading ? (
                     <LoaderAnimation />
                 ) : (
                     <>
                         <Header />
-                        <div className="font-jost flex flex-col md:flex-row min-h-screen w-full bg-gray-100 p-">
+                        <div className="font-jost flex flex-col md:flex-row w-full ">
                             {/* Users List Section */}
                             <div className="w-full md:w-1/3 bg-gray-100 rounded-lg p-4 overflow-y-auto max-h-screen mb-6 md:mb-0">
                                 <h2 className="text-xl font-bold mb-4">Users</h2>
@@ -230,13 +306,24 @@ function Message() {
                                                 <h2 className="text-lg font-semibold">{name}</h2>
                                                 <p className="text-sm text-gray-300">{status}</p>
                                             </div>
+                                            <div className="relative flex space-x-4">
+                                                <div className="group cursor-pointer relative">
+                                                    <FontAwesomeIcon icon={faCircleStop} />
+
+                                                    <div className="hidden group-hover:block absolute 
+                                                    bg-[#6C6C9B] border-4 border-[#252535] right-0 text-white px-4 py-2 rounded" onClick={handleBlock}>
+
+                                                        <h1>{isblock ? "UnBlock" : "Block"}</h1>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         {/* Chat Messages */}
                                         <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg">
                                             {messages?.map((message, index) => (
                                                 <div key={index} className={`flex ${message.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
-                                                    <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
+                                                    <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#464673]'}`}>{message.message}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -250,7 +337,7 @@ function Message() {
                                                 value={message}
                                                 onChange={(e) => setMessage(e.target.value)}
                                             />
-                                            <button onClick={() => sendMessage(id)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded-md">
+                                            <button onClick={() => sendMessage(id, name, message)} className="ml-2 bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded-md">
                                                 <FontAwesomeIcon icon={faArrowCircleRight} size="lg" />
                                             </button>
                                         </div>
@@ -271,7 +358,7 @@ function Message() {
                     <img src={messageImage} className="w-[40%] alignment" />
                 </div>
             )}
-            <Footer />
+            {hastoken || <Footer />}
         </div>
 
 

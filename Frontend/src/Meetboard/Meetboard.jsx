@@ -3,14 +3,48 @@ import Header from '../Header/Header'
 import Footer from '../Footer/Footer'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClose, faCopy, faKeyboard, faVideo } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
+import SocketContext from "../Sockets/SocketContext";
+import { useNavigate } from "react-router-dom";
+
 function MeetBoard() {
     const [generateRoomId, setGenerateRoomId] = useState("");
     const [display, setDisplay] = useState(false)
+    const [host, setHost] = useState({});
+    const [name, setName] = useState('');
+    const [id, setId] = useState(null);
+    const socket = useContext(SocketContext)
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        let name = localStorage.getItem('name');
+        console.log(name)
+        setName(name);
+        setHost({ name, Ishost: false });
+    }, [socket])
+
     function handleGenerate() {
         const hexCode = Math.floor(Math.random() * 0xFFFFFF).toString(16).padEnd(8, '0');
         setGenerateRoomId(hexCode);
         setDisplay(true)
+        setHost({ name, Ishost: true });
+    }
+
+    function handleChange(e) {
+        if (e.target.value != null) {
+            setId(false)
+        }
+        setId(e.target.value)
+    }
+
+    function handleJoin() {
+        if (id) {
+            socket.emit("join-room", id, host);
+            navigate(`/room/${id}`);
+
+        } else {
+            console.log("No room ID entered!");
+        }
     }
 
     return (
@@ -35,9 +69,10 @@ function MeetBoard() {
                                 type="text"
                                 className="h-full outline-none w-full"
                                 placeholder="Enter Room Id"
+                                onChange={(e) => handleChange(e)}
                             />
                         </div>
-                        <button className="font-bold" disabled={true}>Join</button>
+                        <button className="font-bold" onClick={handleJoin} disabled={id ? false : true}>Join</button>
                     </div>
                 </div>
 
