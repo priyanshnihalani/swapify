@@ -17,7 +17,12 @@ import crypto from 'crypto'
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import MongoStore from 'connect-mongo';
 // Create an Express app
+
+const url = process.env.MONGO_URI;
+const jsonsecretkey = process.env.JWT_SECRET_KEY;
+
 const app = express();
 env.config();
 
@@ -25,7 +30,8 @@ env.config();
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "PATCH", "DELETE"],
-},));
+}));
+
 app.use(express.json());
 
 app.use(bodyParser.json({ limit: '1gb' }));  // Increase limit to 50MB
@@ -33,9 +39,10 @@ app.use(bodyParser.urlencoded({ limit: '1gb', extended: true }));
 
 // Session Setup - Make sure it's before passport initialization
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    store: MongoStore.create({mongoUrl: url})
 }));
 
 // Initialize passport after session middleware
@@ -50,8 +57,7 @@ const io = new Server(server, {
     },
 });
 
-const url = process.env.MONGO_URI;
-const jsonsecretkey = process.env.JWT_SECRET_KEY;
+
 
 let db;
 
