@@ -38,8 +38,8 @@ function SignIn() {
 
         if (data.message === 'Welcome Back!') {
             localStorage.setItem('accesstoken', data.accesstoken)
-            localStorage.setItem('id', data.user._id)
-            localStorage.setItem('name', data.user.name);
+            localStorage.setItem('id', data.id)
+            localStorage.setItem('name', data.name);
             navigate('/')
         }
     }
