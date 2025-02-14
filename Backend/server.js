@@ -20,11 +20,12 @@ import { fileURLToPath } from 'url';
 import MongoStore from 'connect-mongo';
 // Create an Express app
 
+env.config();
+
 const url = process.env.MONGO_URI;
 const jsonsecretkey = process.env.JWT_SECRET_KEY;
 
 const app = express();
-env.config();
 
 // Middlewares
 app.use(cors({
@@ -42,7 +43,11 @@ app.use(session({
     secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
     resave: false,
     saveUninitialized: true,
-    store: MongoStore.create({mongoUrl: url})
+    store: MongoStore.create({ mongoUrl: url, 
+        ssl: true,
+        sslValidate: true,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,})
 }));
 
 // Initialize passport after session middleware
@@ -61,7 +66,12 @@ const io = new Server(server, {
 
 let db;
 
-MongoClient.connect(url, { ssl: true,}).then(client => {
+MongoClient.connect(url, {
+    ssl: true,
+    sslValidate: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
     Chat(io, db, ObjectId);
