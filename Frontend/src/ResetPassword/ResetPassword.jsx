@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import logo from '../assets/images/logo2.png';
 
-const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function ResetPassword() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();

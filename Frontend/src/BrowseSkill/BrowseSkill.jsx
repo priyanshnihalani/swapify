@@ -5,7 +5,9 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Browseskill() {    
+function Browseskill() { 
+  const backendUrl = process.env.VITE_BACKEND_URL;
+
     const navigate = useNavigate();
     const [name, setName] = useState(null);
     const [mId, setmId] = useState(null);
@@ -36,7 +38,7 @@ function Browseskill() {
         }
     
         try {
-            const response = await fetch(`http://localhost:3000/searchData/${data}`);
+            const response = await fetch(`${backendUrl}/searchData/${data}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch data");
             }

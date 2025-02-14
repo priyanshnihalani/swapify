@@ -26,7 +26,7 @@ function UserViewProfile() {
     const [chargeCard, setchargeCard] = useState(false);
     const [rate, setRate] = useState(1);
 
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     const skillComponent = (index) => {
         return (

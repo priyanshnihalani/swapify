@@ -5,7 +5,10 @@ import SocketContext from "./SocketContext";
 export const SocketProvider = ({ children }) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-    const socket = useMemo(() => io(backendUrl, { transports: ["websocket", "polling"] }), [backendUrl]);
+    const socket = useMemo(() => io(import.meta.env.VITE_BACKEND_URL, {
+        transports: ["websocket"],
+        withCredentials: true,
+    }), [backendUrl]);
 
     console.log(backendUrl)
     useEffect(() => {

@@ -31,7 +31,7 @@ function PeopleViewProfile() {
   const chatRef = useRef(null);
   const [review, setReview] = useState([]);
 
-  const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     if (chatRef.current) {

@@ -3,7 +3,7 @@ import logo from '../assets/images/logo2.png';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function SignIn() {
     useEffect(() => {

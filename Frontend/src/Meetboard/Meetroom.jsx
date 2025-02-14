@@ -43,7 +43,7 @@ function MeetRoom() {
     const screenStream = useRef(null);
     const originalStreamRef = useRef(null);
 
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     // Step 1: Initialize media streams
     const initializeMedia = async (videoenabled = true, audioenabled = true) => {
         try {

@@ -24,7 +24,7 @@ function SignUp() {
 
     const [showToolTip, setShowToolTip] = useState(false);
     
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     async function handleSubmit(e) {
         e.preventDefault();
