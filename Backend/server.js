@@ -195,13 +195,13 @@ app.post('/login', async (request, response) => {
             const isPasswordValid = await bcrypt.compare(password, userExists.password);
             if (!isPasswordValid) return response.status(400).json({ message: "Please Enter Correct Password" });
 
-            const accesstoken = jwt.sign({ id: userExists.insertedId.toString() }, jsonsecretkey, { expiresIn: '30d' });
+            const accesstoken = jwt.sign({ id: userExists.insertedId }, jsonsecretkey, { expiresIn: '30d' });
 
             response.status(200).json({
                 message: "Welcome Back!",
                 accesstoken,
                 name: userExists.name,
-                id: userExists.insertedId.toString()
+                id: userExists.insertedId
             });
         }
     }
