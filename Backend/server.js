@@ -43,11 +43,9 @@ app.use(session({
     secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
     resave: false,
     saveUninitialized: true,
-    store: MongoStore.create({ mongoUrl: url, 
-        ssl: true,
-        sslValidate: true,
-        useNewUrlParser: true,
-        useUnifiedTopology: true,})
+    store: MongoStore.create({
+        mongoUrl: url,
+    })
 }));
 
 // Initialize passport after session middleware
@@ -66,12 +64,7 @@ const io = new Server(server, {
 
 let db;
 
-MongoClient.connect(url, {
-    ssl: true,
-    sslValidate: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(client => {
+MongoClient.connect(url).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
     Chat(io, db, ObjectId);
