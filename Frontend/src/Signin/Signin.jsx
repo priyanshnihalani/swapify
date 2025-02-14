@@ -33,7 +33,6 @@ function SignIn() {
             credentials: "include" 
         })
 
-        console.log(await response.json())
         const data = await response.json();
         alert(data.message);
 
