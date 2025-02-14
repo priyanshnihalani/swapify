@@ -202,7 +202,7 @@ app.post('/login', async (request, response) => {
                 message: "Welcome Back!",
                 accesstoken,
                 name: userExists.name,
-                id: userExists.insertedId
+                id: userExists.insertedId.toString()
             });
         }
     }
