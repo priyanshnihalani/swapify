@@ -39,7 +39,8 @@ function SignUp() {
                     name: userData.name,
                     email: userData.email,
                     password: userData.password
-                })
+                }),
+                credentials: "include"
             });
             const result = await response.json();
             alert(result.message);

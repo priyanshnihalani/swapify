@@ -29,7 +29,8 @@ function SignIn() {
             body: JSON.stringify({
                 email: userData.email,
                 password: userData.password
-            })
+            }),
+            credentials: "include" 
         })
 
         console.log(await response.json())
