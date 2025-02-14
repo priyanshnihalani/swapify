@@ -66,6 +66,12 @@ function Message() {
     }, [myId])
 
     useEffect(() => {
+        if(!data){
+            setLoading(false)
+        }
+    }, [data])
+
+    useEffect(() => {
         const handleStatus = (data) => {
             setReceiverId(data.userId);
             setStatus(data.status);
@@ -95,7 +101,7 @@ function Message() {
         return () => {
             socket.off('receive-message')
         }
-    })
+    }, [socket])
 
 
 

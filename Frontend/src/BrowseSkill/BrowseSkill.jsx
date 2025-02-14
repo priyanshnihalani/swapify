@@ -5,16 +5,11 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Browseskill() {
-
-    useEffect(() => {
-        const name = localStorage.getItem('name')
-        setName(name)
-    }, [])
-
+function Browseskill() {    
     const navigate = useNavigate();
     const [name, setName] = useState(null);
-    const [searchValue, setSearchValue] = useState(null);
+    const [mId, setmId] = useState(null);
+    const [searchValue, setSearchValue] = useState("");
     const [data, setData] = useState([])
     const [categories, setCategories] = useState([
         "Web Development",
@@ -27,23 +22,53 @@ function Browseskill() {
         "Video Editing",
     ]);
 
-    async function fetchData(data) {
-        if(data == ""){
-            return setData([])
-        }
-        const response = await fetch(`http://localhost:3000/searchData/${data}`);
-        const result = await response.json()
-        const finalData = await result.filter((item) => item.name !== name)
-        setData(finalData)
-    }
+    useEffect(() => {
+        const name = localStorage.getItem('name')
+        const id = localStorage.getItem('id')
+        setName(name)
+        setmId(id)
+    }, [])
 
-    async function handleSearch(e) {
-            await fetchData(e.target.value)
+    async function fetchData(data) {
+        if (data === "") {
+            setData([]);
+            return;
+        }
+    
+        try {
+            const response = await fetch(`http://localhost:3000/searchData/${data}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch data");
+            }
+            const result = await response.json();
+            const finalData = result.filter((item) => item.name !== name);
+            setData(finalData);
+            console.log(finalData);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setData([]); // Reset data on error
+        }
+    }
+    
+    function handleSearch(e) {
+        fetchData(e.target.value)
         setSearchValue(e.target.value)
     }
 
-    function moveToProfile(name){
-        navigate(`/peopleviewprofile/${name}`)
+    async function moveToProfile(id) {
+        const timeStamp = Date.now()
+        const response = await fetch(`http://localhost:3000/profileview/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": 'application/json'
+            },
+            body: JSON.stringify({timeStamp, id:mId})
+        }) 
+        const result = await response.json();
+        console.log(result.message)
+        if(result.message == "View Added" || result.message == "View Already Exists"){
+            navigate(`/peopleviewprofile/${id}`)
+        }
     }
 
     return (
@@ -71,7 +96,7 @@ function Browseskill() {
                             <FontAwesomeIcon icon={faSearch} />
                         </button>
                     </div>
-                    {data.length > 0  ? <div className="bg-white w-full max-w-3xl absolute shadow-lg top-20 rounded-md">
+                    {data.length > 0 && <div className="bg-white w-full max-w-3xl absolute shadow-lg top-20 rounded-md">
                         {data.map((item, index) => (
                             <div key={index} className="flex justify-between items-center py-4 px-8">
                                 <div className="flex items-center space-x-8">
@@ -83,11 +108,11 @@ function Browseskill() {
                                     </div>
                                 </div>
                                 <div>
-                                    <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded" onClick={() => moveToProfile(item.name)}>View</button>
+                                    <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white px-4 py-2 rounded" onClick={() => moveToProfile(item._id)}>View</button>
                                 </div>
                             </div>
                         ))}
-                    </div> : <></>}
+                    </div>}
                 </div>
 
 

@@ -8,27 +8,28 @@ import { useEffect, useState } from "react";
 
 
 function Contact() {
-  
-  const { register, handleSubmit, formState: { errors }} = useForm();
+
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [hours, setHours] = useState(null);
 
   useEffect(() => {
-    setHours(new Date().getHours()) 
+    setHours(new Date().getHours())
   }, [])
 
-  
-  async function submit(values){
-    const response = await fetch('http://localhost:3000/send-email', {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  async function submit(values) {
+    const response = await fetch(`${backendUrl}/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({email: values.email, subject: values.subject, message: values.message})
+      body: JSON.stringify({ email: values.email, subject: values.subject, message: values.message })
     })
 
     const result = await response.json();
     console.log(result);
-  } 
+  }
 
   return (
     <>
@@ -51,7 +52,7 @@ function Contact() {
               type="email"
               name="email"
               placeholder="Enter Your Email Address"
-              {...register('email', {required: "Email Required"})}
+              {...register('email', { required: "Email Required" })}
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
             />
             <p className="text-red-600">{errors.email && errors.email.message}</p>
@@ -60,7 +61,7 @@ function Contact() {
               type="text"
               name="subject"
               placeholder="Briefly Describe Your Query"
-              {...register('subject', {required: "Subject Required"})}
+              {...register('subject', { required: "Subject Required" })}
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
             />
             <p className="text-red-600">{errors.subject && errors.subject.message}</p>
@@ -69,7 +70,7 @@ function Contact() {
               name="message"
               placeholder="Type Your Message"
               className="border-2 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 p-4 rounded"
-              {...register('message', {required: "Message Required"})}
+              {...register('message', { required: "Message Required" })}
               rows={8}
             />
             <p className="text-red-600">{errors.message && errors.message.message}</p>
@@ -89,7 +90,7 @@ function Contact() {
 
         <section className="w-full">
           <div className="w-full bg-white px-4 sm:px-8 lg:px-20 pb-8">
-            <MyMap hours={hours}/>
+            <MyMap hours={hours} />
           </div>
 
           <div className="space-y-4 px-5 md:px-0 py-12">

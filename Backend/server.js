@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express from 'express';
+import express, { response } from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import { setupWebRTC } from './webrtc.js';
@@ -14,12 +14,18 @@ import bodyParser from 'body-parser';
 import Chat from './chat.js';
 import nodemailer from 'nodemailer'
 import crypto from 'crypto'
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 // Create an Express app
 const app = express();
 env.config();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+},));
 app.use(express.json());
 
 app.use(bodyParser.json({ limit: '1gb' }));  // Increase limit to 50MB
@@ -40,7 +46,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: "*",
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST", "PATCH", "DELETE"],
     },
 });
 
@@ -60,6 +66,22 @@ MongoClient.connect(url).then(client => {
 
 
 setupWebRTC(io);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'uploads/'))
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+    },
+})
+
+const upload = multer({ storage })
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get('/searchData/:data', async (request, response) => {
     const data = request.params.data;
@@ -133,15 +155,18 @@ app.post('/register', async (request, response) => {
         const result = await db.collection('users').insertOne({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            coins: 400,
+            charges: 1
         });
 
-        const accesstoken = jwt.sign({ id: result.insertedId }, jsonsecretkey, { expiresIn: '30d' });
+        const accesstoken = jwt.sign({ id: result.insertedId.toString() }, jsonsecretkey, { expiresIn: '30d' });
 
         response.status(201).json({
             message: 'User registered successfully',
             accesstoken,
-            name
+            name,
+            id: result.insertedId.toString()
         });
 
     } catch (error) {
@@ -161,12 +186,13 @@ app.post('/login', async (request, response) => {
             const isPasswordValid = await bcrypt.compare(password, userExists.password);
             if (!isPasswordValid) return response.status(400).json({ message: "Please Enter Correct Password" });
 
-            const accesstoken = jwt.sign({ id: userExists.insertedId }, jsonsecretkey, { expiresIn: '30d' });
+            const accesstoken = jwt.sign({ id: userExists.insertedId.toString() }, jsonsecretkey, { expiresIn: '30d' });
 
             response.status(200).json({
                 message: "Welcome Back!",
                 accesstoken,
-                user: userExists
+                name: userExists.name,
+                id: userExists.insertedId.toString()
             });
         }
     }
@@ -312,51 +338,134 @@ app.post('/reset-password/:token', async (request, response) => {
         response.status(200).send({ message: 'Password successfully reset' });
     }
     catch (error) {
-        res.status(500).send({ message: 'Server error' });
+        response.status(500).send({ message: 'Server error' });
     }
 })
 
-passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: process.env.FACEBOOK_REDIRECT_URI,
-    profileFields: ['id', 'displayName', 'email']
-}, async function (accessToken, refreshToken, profile, done) {
+
+app.patch('/rating', async (request, response) => {
+    const data = request.body;
+    const timeStamp = Date.now()
+    const id = new ObjectId(data.hostId)
     try {
-        const { id, displayName, emails } = profile;
-        const email = emails && emails[0].value;
-        const name = displayName || '';
 
-        // Check if user exists
-        let user = await db.collection('users').findOne({ name });
-        let userId;
+        const record = await db.collection('users').updateOne(
+            { "_id": id },
+            {
+                $push: {
+                    reviews: {
+                        timestamp: timeStamp,
+                        from: data.client,
+                        stars: data.starValue,
+                        textValue: data.textValue
+                    }
+                }
+            }
+        )
 
-        if (!user) {
-            // Create new user
-            const result = await db.collection('users').insertOne({
-                name: name,
-                email: email,
-                facebookId: id
-            });
-            userId = result.insertedId;
+        if (record && record.modifiedCount > 0) {
+            return response.status(200).send({ message: 'Review Sent Successfully' });
         }
-        else {
-            userId = user._id;
-        }
-
-        // Generate token first
-        const jwtToken = jwt.sign({ id: userId }, jsonsecretkey, { expiresIn: '30d' });
-
-        // Return user with token
-        done(null, {
-            accessToken: jwtToken,
-            name: name
-        });
-
-    } catch (error) {
-        done(error, null);
+        response.status(400).send({ message: 'User Not Found' });
     }
-}));
+    catch (error) {
+        response.status(500).send({ message: 'Failed to Sent Review' });
+    }
+})
+
+
+app.patch('/profileview/:id', async (request, response) => {
+    const id = request.params.id;
+    console.log("view id: " + id);
+    const data = request.body
+    try {
+        const prevrecord = await db.collection('users').findOne(
+            { "_id": new ObjectId(id) },
+            { projection: { views: 1 } }
+        )
+
+        const alreadyViewed = prevrecord.views?.some(item => item.id === data.id);
+
+        if (alreadyViewed) {
+            return response.status(200).send({ message: 'View Already Exists' });
+        }
+
+
+        const record = await db.collection('users').updateOne(
+            { "_id": new ObjectId(id) },
+            {
+                $addToSet: {
+                    views: {
+                        timeStamp: data.timeStamp,
+                        id: data.id
+                    }
+                }
+            }
+        )
+        if (record && record.modifiedCount > 0) {
+            return response.status(200).send({ message: 'View Added' });
+        }
+        response.status(400).send({ message: 'User Not Found' });
+    }
+    catch (error) {
+        return response.status(500).send({ message: 'Failed To Add View' });
+    }
+})
+
+passport.use(new FacebookStrategy(
+    {
+        clientID: process.env.FACEBOOK_APP_ID,
+        clientSecret: process.env.FACEBOOK_APP_SECRET,
+        callbackURL: process.env.FACEBOOK_REDIRECT_URI,
+        profileFields: ['id', 'displayName', 'email']
+    },
+    async function (accessToken, refreshToken, profile, done) {
+        try {
+            const { id, displayName, emails } = profile;
+            const email = emails?.[0]?.value || null; // Ensure it's not undefined
+            const name = displayName || "Unknown User"; // Prevent null values
+
+            if (!id) {
+                return done(new Error("Facebook ID is missing"), null);
+            }
+
+            // Check if user exists using `facebookId` or `email`
+            let user = await db.collection('users').findOne({
+                $or: [{ facebookId: id }, { email: email }]
+            });
+
+            let userId;
+
+            if (!user) {
+                // Create new user only if necessary
+                const result = await db.collection('users').insertOne({
+                    name: name,
+                    email: email,
+                    facebookId: id,
+                    coins: 400,
+                    charges: 1
+                });
+                userId = result.insertedId;
+            } else {
+                userId = user._id;
+            }
+
+            // Generate JWT token
+            const jwtToken = jwt.sign({ id: userId.toString() }, process.env.JWT_SECRET_KEY, { expiresIn: '30d' });
+
+            // Return user with token
+            done(null, {
+                accessToken: jwtToken,
+                name: name,
+                id: userId
+            });
+
+        } catch (error) {
+            console.error("Error in Facebook authentication:", error);
+            done(error, null);
+        }
+    }
+));
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
@@ -366,37 +475,54 @@ app.get('/auth/facebook/', passport.authenticate('facebook')); // Redirect to Fa
 app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/register' }),
     (req, res) => {
-        const token = req.user.accessToken;
-        const name = req.user.name;
+        if (!req.user) {
+            return res.redirect('http://localhost:5173/?error=AuthenticationFailed');
+        }
+
+        const { accessToken, name, id } = req.user;
 
         // Redirect directly to home page with hash params
-        res.redirect(`http://localhost:5173/?token=${token}&name=${encodeURIComponent(name)}`);
+        res.redirect(`http://localhost:5173/?id=${id}&token=${accessToken}&name=${encodeURIComponent(name)}`);
     }
 );
 
-app.patch('/uploadCover/:id', async (request, response) => {
-    const id = new ObjectId(request.params.id);
-    const { coverImage } = request.body;
 
-
-    if (!coverImage) {
-        return response.status(400).send({ error: 'Image is required' });
+app.patch("/uploadCover/:id", upload.single("coverImage"), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
     }
 
+    const filePath = path.join(__dirname, 'uploads', req.file.filename);
+
+    // But store only the relative path in database for serving
+    const dbPath = `/uploads/${req.file.filename}`;
+    const userId = req.params.id;
+
     try {
-        const result = await db.collection('users').updateOne(
-            { _id: id },
-            { $set: { coverImage } }
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        const result = await db.collection("users").updateOne(
+            { _id: new ObjectId(userId) },
+            { $set: { coverImage: dbPath } }  // Store the relative path
         );
 
         if (result.matchedCount === 0) {
-            return response.status(404).send({ error: 'Record not found' });
+            return res.status(404).json({ message: "User not found" });
         }
 
-        response.send({ message: 'Image updated successfully', modifiedCount: result.modifiedCount });
+        res.json({
+            message: "File uploaded successfully",
+            filePath: dbPath  // Send the relative path to frontend
+        });
+
     } catch (error) {
-        console.error('Error updating image:', error);
-        response.status(500).send({ error: 'Error updating image' });
+        console.error("Error uploading file:", error);
+        res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message
+        });
     }
 });
 
@@ -416,6 +542,27 @@ app.patch('/updateProfile/:id', async (request, response) => {
     }
 })
 
+app.patch('/charges/:id', async (request, response) => {
+    try {
+        const id = request.params.id.toString();
+        const { rate } = request.body
+        console.log(request.body)
+
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { charges: rate } }
+        );
+
+        response.send({
+            message: 'Data Updated Successfully',
+            modifiedCount: result.modifiedCount,
+        });
+    }
+    catch (error) {
+        console.error(error);
+        response.status(500).send({ message: 'Internal Server Error' });
+    }
+})
 app.patch('/skillprovide/:id', async (request, response) => {
     try {
         // Validate ObjectId
@@ -474,6 +621,91 @@ app.patch('/skillwant/:id', async (request, response) => {
     }
 });
 
+
+
+app.patch('/deductCoin/:id', async (request, response) => {
+    const { coins } = request.body;
+
+    try {
+
+        if (!coins || isNaN(coins) || coins <= 0) {
+            return response.status(400).send({ error: "Invalid coin amount" });
+        }
+
+
+        const user = await db.collection('users').findOne(
+            { "_id": new ObjectId(request.params.id) },
+            { projection: { coins: 1 } }
+        );
+
+        if (!user) {
+            return response.status(404).send({ error: "User not found" });
+        }
+
+        if (user.coins === undefined || user.coins <= 0) {
+            console.log("Something went wrong")
+            return response.status(400).send({ message: "User has zero or negative coins, cannot deduct." });
+        }
+
+        if (user.coins < coins) {
+            return response.status(400).send({ message: "Insufficient coins to deduct." });
+        }
+
+
+        const result = await db.collection('users').updateOne(
+            { "_id": new ObjectId(request.params.id), "coins": { $gte: coins } },
+            { $inc: { coins: -coins } }
+        );
+
+        if (result.modifiedCount > 0) {
+            return response.status(200).send({ message: "Coins deducted successfully" });
+        }
+
+        return response.status(400).send({ message: "Failed to deduct coins" });
+
+    } catch (error) {
+        console.error("Error deducting coins:", error);
+        response.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+
+app.patch('/incrementCoin/:id', async (request, response) => {
+    const id = new ObjectId(request.params.id)
+    const { coins } = request.body;
+    const record = await db.collection('users').updateOne(
+        { "_id": id },
+        { $inc: { coins: +coins } }
+    )
+
+    if (record.modifiedCount > 0) {
+        return response.status(200).send({ message: "Coins Incremented successfully" });
+    }
+
+    return response.status(400).send({ message: "Failed to increment coins" });
+})
+
+app.get('/fetchCharges/:id', async (request, response) => {
+    const id = new ObjectId(request.params.id);
+
+    try {
+
+        const record = await db.collection('users').findOne(
+            { "_id": id },
+            { projection: { charges: 1 } }
+        );
+
+        if (record) {
+            return response.status(200).send(record);
+        }
+
+        return response.status(400).send({ message: "User Not Found" });
+    }
+    catch (error) {
+        console.error("Error in Getting Record", error);
+        response.status(500).send({ message: "Internal Server Error" });
+    }
+})
 
 app.post('/sendmessagedb', async (request, response) => {
     const { sender, receiver, message, timestamp } = request.body;
@@ -541,7 +773,64 @@ app.get('/messages/:id', async (request, response) => {
     }
 })
 
+app.patch('/teachSkill', async (request, response) => {
+
+    const { teacher, learner } = request.query
+
+    console.log(teacher, learner)
+    const timeStamp = Date.now()
+    try {
+
+        const record = await db.collection('users').updateOne(
+            { "_id": new ObjectId(teacher) }, {
+            $push: {
+                teaches: {
+                    learner,
+                    timeStamp
+                }
+            }
+        }
+        )
+        if (record && record.modifiedCount > 0) {
+            return response.status(200).send({ message: 'Teaching Added' });
+        }
+        response.status(400).send({ message: 'User Not Found' });
+    }
+    catch (error) {
+        return response.status(500).send({ message: 'Failed To Add Teaching' });
+    }
+})
+
+app.patch('/learnSkill', async (request, response) => {
+
+    const { teacher } = request.query
+    const { learner } = request.query
+
+    console.log(teacher, learner)
+    const timeStamp = Date.now()
+    try {
+
+        const record = await db.collection('users').updateOne(
+            { "_id": new ObjectId(learner) }, {
+            $push: {
+                learnes: {
+                    teacher,
+                    timeStamp
+                }
+            }
+        }
+        )
+        if (record && record.modifiedCount > 0) {
+            return response.status(200).send({ message: 'Learning Added' });
+        }
+        response.status(400).send({ message: 'User Not Found' });
+    }
+    catch (error) {
+        return response.status(500).send({ message: 'Failed To Add Learning' });
+    }
+})
+
 const PORT = 3000;
-server.listen(PORT, () => {
+server.listen(process.env.PORT || PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

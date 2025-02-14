@@ -9,9 +9,10 @@ function Chat() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
     useEffect(() => {
-        const socketInstance = io('http://localhost:3000');
+        const socketInstance = io(`${backendUrl}`);
         setSocket(socketInstance);
 
         socketInstance.on('status', (message) => {

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
@@ -11,10 +11,10 @@ import {
 import ratings from "../assets/images/ratings.png";
 import './PeopleViewProfile.css'
 import SocketContext from "../Sockets/SocketContext";
-
+import LoaderAnimation from '../Loader/Loader'
 function PeopleViewProfile() {
   const params = useParams();
-  const { name } = params;
+  const { uid } = params;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [display, setDisplay] = useState(false);
@@ -28,9 +28,18 @@ function PeopleViewProfile() {
   const [myId, setMyId] = useState(null)
   const [sendMessages, setSendMessages] = useState([]);
   const [receiveMessages, setReceiveMessages] = useState([]);
+  const chatRef = useRef(null);
+  const [review, setReview] = useState([]);
+
+  const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
 
+  useEffect(() => {
     const id = localStorage.getItem('id')
     setMyId(id);
     console.log(id)
@@ -41,26 +50,29 @@ function PeopleViewProfile() {
   }, [])
 
   useEffect(() => {
+    if (uid) {
+      async function fetchUserData() {
+        try {
+          const response = await fetch(`${backendUrl}/peopleviewprofile/${uid}`);
 
-    const username = encodeURIComponent(name);
-    async function fetchUserData() {
-      try {
-        const response = await fetch(
-          `http://localhost:3000/peopleviewprofile/${myId}`
-        );
-        const result = await response.json();
-        console.log(result)
-        setData(result);
-        setId(result._id);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          console.log(result.message);
+          setData(result);
+          setId(result._id);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setLoading(false);
+        }
       }
+      fetchUserData();
     }
-    fetchUserData();
 
-  }, [name, myId]);
+  }, [uid]);
 
   useEffect(() => {
     if (id) {
@@ -70,10 +82,27 @@ function PeopleViewProfile() {
 
   useEffect(() => {
     if (data) {
+      const refromedReview = data?.reviews?.map((item) => {
+        const date = new Date(item.timestamp)
+        const day = date.getDate();
+        const month = date.toLocaleString('default', { month: 'short' })
+        const year = date.getFullYear();
+
+        const completeTime = day + " " + month + " " + year
+        console.log(completeTime)
+
+        return { from: item.from, textValue: item.textValue, completeTime, stars: item.stars }
+      })
+      setReview(refromedReview)
+    }
+  }, [data])
+
+  useEffect(() => {
+    if (data) {
       async function fetchSendedChatData() {
 
         try {
-          const response = await fetch(`http://localhost:3000/sendedChat?from=${myId}&to=${data?._id}`);
+          const response = await fetch(`${backendUrl}/sendedChat?from=${myId}&to=${data?._id}`);
           const result = await response.json();
           const newMessages = result.map(item => ({
             message: item.message,
@@ -96,7 +125,7 @@ function PeopleViewProfile() {
     if (data) {
       async function fetchReceivedChatData() {
         try {
-          const response = await fetch(`http://localhost:3000/sendedChat?from=${data?._id}&to=${myId}`);
+          const response = await fetch(`${backendUrl}/sendedChat?from=${data?._id}&to=${myId}`);
           const result = await response.json();
           const newMessages = result.map(item => ({
             message: item.message,
@@ -117,6 +146,8 @@ function PeopleViewProfile() {
   }, [myId, data, status]);
 
   useEffect(() => {
+
+    if (!socket) return;
 
     const handleStatus = (data) => {
       setReceiverId(data.userId);
@@ -173,7 +204,7 @@ function PeopleViewProfile() {
       const timestamp = new Date().getTime();
 
       async function sendMessageDB() {
-        const response = await fetch('http://localhost:3000/sendmessagedb', {
+        const response = await fetch(`${backendUrl}/sendmessagedb`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -197,7 +228,7 @@ function PeopleViewProfile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="loader">Loading...</div>
+        <LoaderAnimation />
       </div>
     );
   }
@@ -208,31 +239,46 @@ function PeopleViewProfile() {
       <div className="relative px-4 font-jost flex items-start py-8 space-x-6">
         <main
           className={`${display
-            ? "w-[70%] space-y-10 ml-4"
-            : "space-y-10 px-6 py-8 min-h-screen bg-gray-50"
+            ? "w-[70%] px-6 py-0 space-y-10 ml-4"
+            : "w-full space-y-10 px-40 pb-0 min-h-screen "
             }`}
         >
           {/* Profile Section */}
           <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded-xl p-1">
             <div className="relative shadow-md rounded-lg overflow-hidden">
+              <div className='z-40 shadow-lg bg-white flex justify-between px-10 py-4'>
+                <div className="flex items-center text-gray-600 space-x-2">
+                  <p className='font-bold'>{data?.name}'s Balance:</p>
+                  <FontAwesomeIcon icon={faCoins} className="text-yellow-500" />
+                  <span className="ml-2">{data?.coins}</span>
+                </div>
+
+                <div className="flex items-center text-gray-600 space-x-2">
+                  <p className='font-bold'>{data?.name}'s Charges:</p>
+                  <FontAwesomeIcon icon={faCoins} className="text-yellow-500" />
+                  <span className="ml-2">{data?.charges} / minute</span>
+                </div>
+              </div>
               <div
-                className="relative min-h-[250px] bg-gray-200 bg-cover"
+                className="h-48 sm:h-64 md:h-60 bg-gray-200 bg-cover bg-center"
                 style={{
                   backgroundImage: data?.coverImage
                     ? `url(${data.coverImage})`
                     : "none",
                 }}
               >
-                <div
-                  className="shadow-lg absolute -bottom-10 rounded-full w-[120px] h-[120px] bg-gray-400 bg-cover border-4 border-white left-6"
-                  style={{
-                    backgroundImage: data?.profileImage
-                      ? `url(${data.profileImage})`
-                      : null,
-                  }}
-                ></div>
+                <div className="absolute bottom-64 left-4 sm:left-8">
+                  <div
+                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-400 bg-cover border-4 border-white shadow-lg"
+                    style={{
+                      backgroundImage: data?.profileImage
+                        ? `url(${data.profileImage})`
+                        : null,
+                    }}
+                  ></div>
+                </div>
               </div>
-              <div className="bg-gray-100 min-h-[300px] pt-16 px-6">
+              <div className="border-t-2 border-gray-700 space-y-2  min-h-[300px] pt-20 bg-white px-6">
                 <h1 className="font-extrabold text-2xl text-gray-800">
                   {data?.name}
                 </h1>
@@ -240,16 +286,17 @@ function PeopleViewProfile() {
                   {data?.description ||
                     "Welcome to my Swapify profile! Feel free to connect if we can collaborate."}
                 </p>
-                <div className="flex mt-4 space-x-4 items-center">
-                  <div className="flex items-center text-gray-600">
-                    <FontAwesomeIcon
-                      icon={faCoins}
-                      className="text-yellow-500 text-sm"
-                    />
-                    <span className="text-xs ml-2">100</span>
+                <div className="pt-4 flex space-x-4 items-center">
+                  <div>
+                    <p className="font-bold">
+                      No of Swap's: {((data?.teaches?.length || 0) > 0 || (data?.learnes?.length || 0) > 0)
+                        ? ((data?.teaches?.length || 0) + (data?.learnes?.length || 0))
+                        : 0}
+                    </p>
+
                   </div>
                   <button
-                    className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white py-2 px-4 rounded-full hover:scale-105 transform transition duration-300"
+                    className="font-semibold bg-gradient-to-r from-[#252535] to-[#6C6C9B] text-white py-2 px-4 rounded-full hover:scale-105 transform transition duration-300"
                     onClick={showMessageBox}
                   >
                     Message
@@ -279,14 +326,24 @@ function PeopleViewProfile() {
               <h1 className="text-3xl font-black pt-4 pl-4 underline">
                 Ratings
               </h1>
-              {data?.ratings?.length ? (
-                <div className="flex flex-wrap p-6 space-x-4">
-                  {data.ratings.map((rating, index) => (
-                    <FontAwesomeIcon
-                      key={index}
-                      icon={faStar}
-                      className="text-yellow-500 text-2xl"
-                    />
+              {review?.length > 0 ? (
+                <div className="flex flex-wrap justify-around p-6 space-x-4 space-y-4">
+                  {review.map((item) => (
+                    <div className="flex flex-col items-center justify-between p-4 rounded-full  bg-white shadow w-1/4 h-[10rem]space-x-6 space-y-6">
+                      <div className="flex flex-col gap-1 items-center">
+                        <p className="flex items-center justify-center gap-1 text-lg font-semibold">
+                          <FontAwesomeIcon icon={faStar} className="text-yellow-400" />
+                          <span>{item.stars}/5</span>
+                        </p>
+                        <p className="text-sm text-gray-700 font-medium">{item.textValue}</p>
+                      </div>
+
+                      <div className="w-full flex flex-col items-center border-t border-gray-200 pt-2">
+                        <p className="text-sm font-semibold">{item.from}</p>
+                        <p className="text-xs text-gray-500">{item.completeTime}</p>
+                      </div>
+                    </div>
+
                   ))}
                 </div>
               ) : (
@@ -309,12 +366,12 @@ function PeopleViewProfile() {
             </div>
 
             {/* Chat Container */}
-            <div className="bg-gray-100 min-h-[500px] max-h-[500px] overflow-y-scroll py-4 px-2 chat-container style-bg">
+            <div ref={chatRef} className="bg-gray-100 min-h-[500px] max-h-[500px] overflow-auto py-4 px-2 chat-container style-bg">
               {messages.length > 0 && (
                 <div className="messages">
                   {messages.map((message, index) => (
                     <div key={index} className={message.type === 'sent' ? 'flex justify-end' : 'flex justify-start'}>
-                       <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
+                      <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#646491]'}`}>{message.message}</p>
                     </div>
                   ))}
                 </div>

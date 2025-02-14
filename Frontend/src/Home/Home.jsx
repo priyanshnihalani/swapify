@@ -34,10 +34,12 @@ function Home() {
             const params = new URLSearchParams(window.location.search);
             const authToken = params.get('token');
             const name = params.get('name');
+            const id = params.get('id')
 
             if (authToken && name) {
                 localStorage.setItem('accesstoken', authToken);
                 localStorage.setItem('name', name);
+                localStorage.setItem('id', id);
                 window.history.replaceState({}, document.title, '/');
             }
             else {

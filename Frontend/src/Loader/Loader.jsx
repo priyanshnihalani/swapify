@@ -61,8 +61,18 @@ function LoaderAnimation() {
                         <stop offset="100%" style={{ stopColor: '#6C6C9B' }} />
                     </linearGradient>
                 </defs>
-
                 <g style={styles.word1}>
+                    <text
+                        x="150"
+                        y="50"
+                        textAnchor="middle"
+                        style={{ ...styles.text, fill: 'url(#primaryGradient)' }}
+                    >
+                        Connect...
+                    </text>
+                </g>
+
+                <g style={styles.word2}>
                     <text
                         x="150"
                         y="50"
@@ -72,7 +82,7 @@ function LoaderAnimation() {
                         Learn...
                     </text>
                 </g>
-                <g style={styles.word2}>
+                <g style={styles.word3}>
                     <text
                         x="150"
                         y="50"
@@ -82,16 +92,7 @@ function LoaderAnimation() {
                         Teach...
                     </text>
                 </g>
-                <g style={styles.word3}>
-                    <text
-                        x="150"
-                        y="50"
-                        textAnchor="middle"
-                        style={{ ...styles.text, fill: 'url(#primaryGradient)' }}
-                    >
-                        Collaborate...
-                    </text>
-                </g>
+                
             </svg>
         </div>
     );

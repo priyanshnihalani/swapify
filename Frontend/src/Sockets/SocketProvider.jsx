@@ -3,8 +3,11 @@ import { io } from "socket.io-client";
 import SocketContext from "./SocketContext";
 
 export const SocketProvider = ({ children }) => {
-    const socket = useMemo(() => io("http://localhost:3000"), []);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+    const socket = useMemo(() => io(backendUrl, { transports: ["websocket", "polling"] }), [backendUrl]);
+
+    console.log(backendUrl)
     useEffect(() => {
         console.log(socket)
     }, [])

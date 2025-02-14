@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import logo from '../assets/images/logo2.png';
 
+const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+
 function ResetPassword() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [showpassword, setShowPassword] = useState(false)
@@ -14,7 +16,7 @@ function ResetPassword() {
     const navigate = useNavigate()
 
     async function submit(value) {
-        const response = await fetch(`http://localhost:3000/reset-password/${token}`, {
+        const response = await fetch(`${backendUrl}/reset-password/${token}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

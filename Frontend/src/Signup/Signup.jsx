@@ -23,12 +23,14 @@ function SignUp() {
     })
 
     const [showToolTip, setShowToolTip] = useState(false);
+    
+    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
 
     async function handleSubmit(e) {
         e.preventDefault();
         console.log(userData);
         try {
-            const response = await fetch('http://localhost:3000/register', {
+            const response = await fetch(`${backendUrl}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -44,7 +46,7 @@ function SignUp() {
             console.log(result)
             localStorage.setItem('name', result.name);
             localStorage.setItem('accesstoken', result.accesstoken)
-            localStorage.setItem('id', result._id)
+            localStorage.setItem('id', result.id)
             navigate('/');
         }
         catch (error) {
@@ -52,7 +54,7 @@ function SignUp() {
         }
     }
     async function handleFacebookLogin() {
-        window.location.href = 'http://localhost:3000/auth/facebook';
+        window.location.href = `${backendUrl}/auth/facebook`;
     }
 
     useEffect(() => {

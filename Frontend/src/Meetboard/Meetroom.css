@@ -1,6 +1,4 @@
-.remotealignment{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.remoteVideo{
+    width: 100%;
+    border: none;
 }

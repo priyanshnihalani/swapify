@@ -3,6 +3,8 @@ import logo from '../assets/images/logo2.png';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
+const backendUrl = import.meta.env.REACT_APP_BACKEND_URL;
+
 function SignIn() {
     useEffect(() => {
         if (localStorage.getItem('token')) {
@@ -19,7 +21,7 @@ function SignIn() {
     async function handleSubmit(event) {
         event.preventDefault()
 
-        const response = await fetch('http://localhost:3000/login', {
+        const response = await fetch(`${backendUrl}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -30,6 +32,7 @@ function SignIn() {
             })
         })
 
+        console.log(await response.json())
         const data = await response.json();
         alert(data.message);
 
@@ -42,7 +45,7 @@ function SignIn() {
     }
 
     function handleFacebookLogin() {
-        window.location.href = 'http://localhost:3000/auth/facebook';
+        window.location.href = `${backendUrl}/auth/facebook`;
     }
 
     return (
