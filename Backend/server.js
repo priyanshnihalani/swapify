@@ -55,7 +55,7 @@ const jsonsecretkey = process.env.JWT_SECRET_KEY;
 
 let db;
 
-MongoClient.connect(url).then(client => {
+MongoClient.connect(url, { ssl: true,}).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
     Chat(io, db, ObjectId);
