@@ -59,7 +59,7 @@ function Browseskill() {
 
     async function moveToProfile(id) {
         const timeStamp = Date.now()
-        const response = await fetch(`http://localhost:3000/profileview/${id}`, {
+        const response = await fetch(`${backendUrl}/profileview/${id}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": 'application/json'
