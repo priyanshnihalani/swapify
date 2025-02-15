@@ -966,7 +966,7 @@ function MeetRoom() {
 
                 {/* Local Video */}
                 <div className={`
-                    ${!remoteStream || !inMeet ? 'w-full h-full p-4' : 'absolute bottom-4 right-4 w-80 aspect-video'} 
+                    ${!remoteStream || !inMeet ? 'w-full h-full p-4' : 'absolute bottom-4 right-4 w-40 aspect-video'} 
                     transition-all duration-300 ease-in-out
                 `}>
                     {renderVideoContainer(localStream, true)}

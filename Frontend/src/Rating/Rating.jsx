@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
 function Rating({ display, data, reviewed }) {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
     // Store the rating stars and the current hover value
     const [stars] = useState([1, 2, 3, 4, 5]);
     const [hoveredValue, setHoveredValue] = useState(null); // To track hovered value
@@ -46,7 +47,7 @@ function Rating({ display, data, reviewed }) {
         if (selected == null) {
             return alert("Please Provide an Review")
         }
-        const response = await fetch('http://localhost:3000/rating', {
+        const response = await fetch(`${backendUrl}/rating`, {
             headers: {
                 "Content-Type": "application/json"
             },
