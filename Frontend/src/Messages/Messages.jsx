@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState, useRef } from "react"
 import messageImage from '../assets/images/message.png'
 import './Messages.css'
 import { useNavigate, useParams } from "react-router-dom";
