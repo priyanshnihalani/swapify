@@ -828,18 +828,30 @@ function MeetRoom() {
         }
 
         try {
-            await Promise.all([
-                fetch(`${backendUrl}/learnSkill?learner=${learner}&teacher=${teacher}`, {
-                    method: "PATCH"
-                }),
-                fetch(`${backendUrl}/teachSkill?teacher=${teacher}&learner=${learner}`, {
-                    method: "PATCH"
-                })
-            ]);
+            const learnSkillResponse = await fetch(
+                `${backendUrl}/learnSkill?learner=${learner}&teacher=${teacher}`, 
+                { method: "PATCH" }
+            );
+        
+            if (!learnSkillResponse.ok) {
+                throw new Error(`Error in learnSkill: ${learnSkillResponse.statusText}`);
+            }
+        
+            const teachSkillResponse = await fetch(
+                `${backendUrl}/teachSkill?teacher=${teacher}&learner=${learner}`, 
+                { method: "PATCH" }
+            );
+        
+            if (!teachSkillResponse.ok) {
+                throw new Error(`Error in teachSkill: ${teachSkillResponse.statusText}`);
+            }
+        
             console.log("Skill swap successful");
+        
         } catch (err) {
             console.error("Failed to swap skills", err);
         }
+        
     }
 
 
