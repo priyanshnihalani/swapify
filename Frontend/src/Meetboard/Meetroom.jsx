@@ -879,8 +879,9 @@ function MeetRoom() {
         connectionInitialized.current = false;
 
         if (host) {
-            socket.emit('endCall');
+            // socket.emit('endCall');
             swapskill()
+            console.log("hi")
         }
         socket.disconnect();
         navigate('/meetboard', !host ? { state: { client: localName, host: remoteName, hostId: hostId } } : {});
