@@ -67,17 +67,21 @@ function MeetBoard() {
     return (
         <>
             <Header />
-            <main className="font-jost flex flex-col md:flex-row justify-between items-center px-4 md:px-28 min-h-screen space-y-6 md:space-y-0 md:space-x-10 pb-10">
-                <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
-                    <h1 className="text-2xl md:text-4xl font-bold">Video calls and meetings for everyone</h1>
+            <main className="font-jost flex flex-col py-10 md:flex-row justify-between items-center px-6 sm:px-10 md:px-20 lg:px-28 min-h-screen space-y-6 md:space-y-0 md:space-x-10 pb-10">
+                <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">Video calls and meetings for everyone</h1>
                     <p className="text-lg text-gray-600">Connect, Learn, and Teach from anywhere with Swapiify.</p>
-                    <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-                        <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded p-3 font-bold text-white flex items-center justify-center w-full md:w-auto" onClick={handleGenerate}>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full">
+                        <button
+                            className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded p-3 font-bold text-white flex items-center justify-center w-full sm:w-auto"
+                            onClick={handleGenerate}
+                        >
                             <FontAwesomeIcon icon={faVideo} />
                             <span className="mx-2">Create Room</span>
                         </button>
 
-                        <div className="rounded p-3 border-2 flex items-center w-full md:w-auto">
+                        <div className="rounded p-3 border-2 flex items-center w-full sm:w-auto max-w-md">
                             <FontAwesomeIcon icon={faKeyboard} />
                             <input
                                 type="text"
@@ -86,14 +90,22 @@ function MeetBoard() {
                                 onChange={handleChange}
                             />
                         </div>
-                        <button className="font-bold  px-4 py-2 rounded disabled:opacity-10" onClick={handleJoin} disabled={!id}>Join</button>
+
+                        <button
+                            className="font-bold px-4 py-2 rounded disabled:opacity-50  w-full sm:w-auto"
+                            onClick={handleJoin}
+                            disabled={!id}
+                        >
+                            Join
+                        </button>
                     </div>
                 </div>
 
-                <div className="w-full md:w-1/2 flex justify-center">
+                <div className="w-[90%] md:w-1/2 flex justify-center">
                     <Carousel />
                 </div>
             </main>
+
 
             <Footer />
             {display && (

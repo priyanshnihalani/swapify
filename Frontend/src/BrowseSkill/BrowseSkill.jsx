@@ -44,6 +44,7 @@ function Browseskill() {
             }
 
             const result = await response.json()
+            console.log(result)
             const finalData = result.filter((item) => item.name !== name);
             setData(finalData);
             console.log(finalData);

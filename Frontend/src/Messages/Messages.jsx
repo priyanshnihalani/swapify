@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react"
 import messageImage from '../assets/images/message.png'
 import './Messages.css'
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SocketContext from "../Sockets/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowCircleRight, faCircleStop, faCommentDots, faHandDots, faListDots } from "@fortawesome/free-solid-svg-icons";
@@ -9,10 +9,15 @@ import LoaderAnimation from "../Loader/Loader";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
 
+
 function Message() {
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
+
     const [name, setName] = useState(null);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const chatRef = useRef(null);
     const [display, setDisplay] = useState(false);
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
@@ -23,6 +28,13 @@ function Message() {
     const [hastoken, setHastoken] = useState(false)
     const [myId, setMyId] = useState(null)
     const [isblock, setisBlock] = useState(false)
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        if (chatRef.current) {
+          chatRef.current.scrollTop = chatRef.current.scrollHeight;
+        }
+      }, [messages]);
 
     useEffect(() => {
         const accesstoken = localStorage.getItem("accesstoken")
@@ -50,7 +62,7 @@ function Message() {
 
             try {
                 setLoading(true); // Set loading to true when fetching starts
-                const response = await fetch(`http://localhost:3000/messages/${myId}`);
+                const response = await fetch(`${backendUrl}/messages/${myId}`);
                 const result = await response.json();
                 setData(result);
                 console.log(result)
@@ -66,7 +78,7 @@ function Message() {
     }, [myId])
 
     useEffect(() => {
-        if(!data){
+        if (!data) {
             setLoading(false)
         }
     }, [data])
@@ -108,7 +120,7 @@ function Message() {
     async function fetchReceivedChatData(id, myId) {
         try {
 
-            const response = await fetch(`http://localhost:3000/sendedChat?from=${id}&to=${myId}`);
+            const response = await fetch(`${backendUrl}/sendedChat?from=${id}&to=${myId}`);
 
             const result = await response.json();
             const received = result.map(item => ({
@@ -130,7 +142,7 @@ function Message() {
 
     async function fetchSendedChatData(myId, id) {
         try {
-            const response = await fetch(`http://localhost:3000/sendedChat?from=${myId}&to=${id}`);
+            const response = await fetch(`${backendUrl}/sendedChat?from=${myId}&to=${id}`);
 
             const result = await response.json();
             console.log(result)
@@ -152,7 +164,7 @@ function Message() {
     }
 
     async function fetchUserData(myId) {
-        const response = await fetch(`http://localhost:3000/userviewprofile/${myId}`)
+        const response = await fetch(`${backendUrl}/userviewprofile/${myId}`)
 
         const result = await response.json()
         return result;
@@ -186,7 +198,7 @@ function Message() {
         let timestamp;
 
         async function sendMessageDB() {
-            const response = await fetch('http://localhost:3000/sendmessagedb', {
+            const response = await fetch(`${backendUrl}/sendmessagedb`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -241,33 +253,33 @@ function Message() {
 
     async function handleBlock() {
         setisBlock(prevIsBlock => {
-            const newIsBlock = !prevIsBlock;  
+            const newIsBlock = !prevIsBlock;
             console.log("New isBlock value:", newIsBlock);
-    
-            if (!prevIsBlock) {  
-                fetch(`http://localhost:3000/block/?idToBlock=${id}&idWantToBlock=${myId}`)
+
+            if (!prevIsBlock) {
+                fetch(`${backendUrl}/block/?idToBlock=${id}&idWantToBlock=${myId}`)
                     .then(response => response.json())
                     .then(result => {
                         console.log("Blocked");
                         if (result.message !== "Success to Block User") {
-                            setisBlock(prev => !prev); 
+                            setisBlock(prev => !prev);
                         }
                     });
-            } else { 
-                fetch(`http://localhost:3000/unblock/?idToUnBlock=${id}&idWantToUnBlock=${myId}`)
+            } else {
+                fetch(`${backendUrl}/unblock/?idToUnBlock=${id}&idWantToUnBlock=${myId}`)
                     .then(response => response.json())
                     .then(result => {
                         console.log(result);
                         if (result.message !== "Success to Unblock User") {
-                            setisBlock(prev => !prev); 
+                            setisBlock(prev => !prev);
                         }
                     });
             }
-            
-            return newIsBlock; 
+
+            return newIsBlock;
         });
     }
-    
+
 
     return (
 
@@ -295,7 +307,7 @@ function Message() {
                                             </div>
                                             <div className="flex space-x-2">
                                                 <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm" onClick={() => setChat(item.name, item._id)}>Chat</button>
-                                                <button className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm">View</button>
+                                                <button onClick={() => navigate(`/peopleviewprofile/${item._id}`)} className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-medium text-white px-3 py-2 rounded-md text-sm">View</button>
                                             </div>
                                         </div>
                                     ))}
@@ -326,7 +338,7 @@ function Message() {
                                         </div>
 
                                         {/* Chat Messages */}
-                                        <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg">
+                                        <div className="flex-1 p-4 pb-0 overflow-y-scroll space-y-2 bg-gray-200 style-bg" ref={chatRef}>
                                             {messages?.map((message, index) => (
                                                 <div key={index} className={`flex ${message.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
                                                     <p className={`my-2 px-4 py-2 rounded-md text-white max-w-xs ${message.type === 'sent' ? 'bg-[#252535]' : 'bg-[#464673]'}`}>{message.message}</p>
