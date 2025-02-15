@@ -8,11 +8,12 @@ export default function Chat(io, db, ObjectId) {
             if (id) {
                 users[id] = { socketId: socket.id, status: "online" };
                 // Broadcast status change to all connected clients
-                io.emit('userStatusChange', { userId: id, status: 'online' });
+                io.emit('status', { userId: id, status: 'online' });
             }
             console.log(`${id} is online`);
             console.log('Current users:', users);
         });
+
 
         socket.on("getStatus", (targetUserId) => {
             const targetUser = users[targetUserId];
