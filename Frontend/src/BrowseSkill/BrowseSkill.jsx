@@ -5,8 +5,8 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Browseskill() { 
-  const backendUrl = process.env.VITE_BACKEND_URL;
+function Browseskill() {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     const navigate = useNavigate();
     const [name, setName] = useState(null);
@@ -36,22 +36,23 @@ function Browseskill() {
             setData([]);
             return;
         }
-    
+
         try {
             const response = await fetch(`${backendUrl}/searchData/${data}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch data");
             }
-            const result = await response.json();
+
+            const result = await response.json()
             const finalData = result.filter((item) => item.name !== name);
             setData(finalData);
             console.log(finalData);
         } catch (error) {
             console.error("Error fetching data:", error);
-            setData([]); // Reset data on error
+            setData([]); 
         }
     }
-    
+
     function handleSearch(e) {
         fetchData(e.target.value)
         setSearchValue(e.target.value)
@@ -64,11 +65,11 @@ function Browseskill() {
             headers: {
                 "Content-Type": 'application/json'
             },
-            body: JSON.stringify({timeStamp, id:mId})
-        }) 
+            body: JSON.stringify({ timeStamp, id: mId })
+        })
         const result = await response.json();
         console.log(result.message)
-        if(result.message == "View Added" || result.message == "View Already Exists"){
+        if (result.message == "View Added" || result.message == "View Already Exists") {
             navigate(`/peopleviewprofile/${id}`)
         }
     }

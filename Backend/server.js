@@ -109,7 +109,7 @@ app.get('/searchData/:data', async (request, response) => {
         if (record.length == 0) {
             return response.status(404).send({ message: 'No Data Found' });
         }
-        response.status(200).json(record);
+        response.status(200).send(record);
     }
     catch (error) {
         console.log(error)
