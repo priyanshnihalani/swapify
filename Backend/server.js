@@ -174,7 +174,7 @@ app.get('/retriveHost/', async (request, response) => {
     const id = new ObjectId(request.query.userId);
     const roomid = request.query.roomId;
     try {
-        const record = await db.collection(room).findOne({
+        const record = await db.collection("room").findOne({
             roomId: roomid,
             userId: id
         })
