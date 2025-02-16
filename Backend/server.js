@@ -172,7 +172,7 @@ app.post('/updateRoom', async (request, response) => {
 })
 
 app.get('/retriveHost/', async (request, response) => {
-    const id = new ObjectId(request.query.userId);
+    const id = request.query.userId;
     const roomid = request.query.roomId;
     try {
         const record = await db.collection("room").findOne({

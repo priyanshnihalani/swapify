@@ -66,7 +66,8 @@ function MeetBoard() {
 
             if(result.status == "200"){
                 const host = {userId: result.record.userId, name: result.record.name, Ishost: result.record.Ishost}   
-                socket.emit("join-room", id, host);
+                // socket.emit("join-room", id, host);
+                console.log(host)
             }
             else if(result.status == "400"){
                 socket.emit("join-room", id, host);
