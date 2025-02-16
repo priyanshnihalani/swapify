@@ -29,7 +29,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: ["https://swapiifyfrontend.vercel.app", "http://localhost:5173/"],
+    origin: "https://swapiifyfrontend.vercel.app",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
@@ -56,7 +56,7 @@ app.use(passport.session());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: ["https://swapiifyfrontend.vercel.app", "http://localhost:5173/"],
+        origin: "https://swapiifyfrontend.vercel.app",
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     },
 });

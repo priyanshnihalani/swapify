@@ -23,6 +23,7 @@ function MeetBoard() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+
     useEffect(() => {
         if (location.state) {
             setDisplayRating(!location?.state.Ishost);
