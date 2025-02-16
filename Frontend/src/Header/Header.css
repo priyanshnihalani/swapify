@@ -64,3 +64,8 @@ ul li:hover {
     color: #230a67;
     cursor: pointer;
 }
+
+.google-te-banner-frame {
+    display: none !important;
+}
+

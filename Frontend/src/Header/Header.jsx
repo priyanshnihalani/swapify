@@ -26,25 +26,40 @@ function Header() {
     }, [location.pathname])
 
 
+    useEffect(() => {
+        const googleTranslateScript = document.createElement("script");
+        googleTranslateScript.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        googleTranslateScript.async = true;
+        document.body.appendChild(googleTranslateScript);
+    
+        window.googleTranslateElementInit = () => {
+          new window.google.translate.TranslateElement(
+            { pageLanguage: "en", autoDisplay: false },
+            "google_translate_element"
+          );
+        };
+      }, []);
+
     function handleLogout() {
         localStorage.removeItem('accesstoken');
         navigate('/');
         window.location.reload();
     }
 
-    const triggerTranslate = async () => {
-        const text = document.body.innerText; // Get full page text
-    
-        const response = await fetch(`${backendUrl}/translate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: text, source: "en", target: "hi" }),
-        });
-    
-        const data = await response.json();
-        document.body.innerText = data.translatedText; // Replace with translated text
-    };
-    
+
+
+    const triggerTranslate = () => {
+        setTimeout(() => {
+          const select = document.querySelector(".goog-te-combo");
+          if (select) {
+            select.value = "hi";
+            select.dispatchEvent(new Event("change"));
+          } else {
+            console.warn("Google Translate dropdown not found.");
+          }
+        }, 3000); // 3-second delay to allow time for the dropdown to load
+      };
 
 
     return (
@@ -58,7 +73,7 @@ function Header() {
 
                 {/* Mobile Menu Icon */}
 
-                {userExist ?
+                {userExist && !insomeLocation ?
                     <>
                         <div className="xl:hidden cursor-pointer" onClick={() => setDisplay(!display)}>
                             <FontAwesomeIcon icon={faBars} className="text-2xl text-[#3d3d67] font-bold transition-all duration-300" />
@@ -94,10 +109,10 @@ function Header() {
                     </>
                     : (<>
                         <div className='py-4 group text-lg w-1/6 relative font-jost flex items-center justify-end space-x-8 pr-4'>
-
                             <div className='space-x-2 font-bold group-hover:animate-fade-in-right hidden group-hover:block'>
                                 {insomeLocation ?
                                     <>
+                                    <div id="google_translate_element" className='hidden'></div>
                                         <button onClick={triggerTranslate}><span className='underline'>Translate To Hindi</span></button>
                                     </>
 
