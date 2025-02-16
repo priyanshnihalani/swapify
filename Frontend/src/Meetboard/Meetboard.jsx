@@ -84,7 +84,9 @@ function MeetBoard() {
         setHost({ userId, name, Ishost: true });
         const setRoomId  = await fetch(`${backendUrl}/updateRoom`, {
             method: "POST",
-            "Content-Type" : "application/json",
+            headers:{
+                "Content-Type" : "application/json",
+            },
             body: JSON.stringify({
                 userId,
                 name,
