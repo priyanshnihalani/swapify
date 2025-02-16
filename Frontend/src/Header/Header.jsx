@@ -1,19 +1,51 @@
 import logo from '../assets/images/logo2.png';
-import { Link, useNavigate } from 'react-router-dom';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { faArrowCircleDown, faBars, faEarth } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Header.css';
 
 function Header() {
     const [display, setDisplay] = useState(false);
     const navigate = useNavigate();
+    const [userExist, setUserExist] = useState(false);
+    const location = useLocation();
+    const [someLocation, setSomeLocation] = useState([
+        '/privacypolicy', '/aboutus', '/contactus', '/termsandcondition',
+        '/faq'
+    ])
+    const [insomeLocation, setInSomeLocation] = useState(false)
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
+
+    useEffect(() => {
+        setInSomeLocation(someLocation.some(item => location.pathname === item));
+
+        console.log(location.pathname)
+        setUserExist(localStorage.getItem('accesstoken'))
+    }, [location.pathname])
+
 
     function handleLogout() {
         localStorage.removeItem('accesstoken');
         navigate('/');
         window.location.reload();
     }
+
+    const triggerTranslate = async () => {
+        const text = document.body.innerText; // Get full page text
+    
+        const response = await fetch(`${backendUrl}/translate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text, source: "en", target: "hi" }),
+        });
+    
+        const data = await response.json();
+        document.body.innerText = data.translatedText; // Replace with translated text
+    };
+    
+
 
     return (
         <header className="w-full bg-white top-0 z-50 py-2 transition-all duration-500 ease-in-out">
@@ -25,37 +57,64 @@ function Header() {
                 </div>
 
                 {/* Mobile Menu Icon */}
-                <div className="xl:hidden cursor-pointer" onClick={() => setDisplay(!display)}>
-                    <FontAwesomeIcon icon={faBars} className="text-2xl text-[#3d3d67] font-bold transition-all duration-300" />
-                </div>
 
-                {/* Desktop Menu */}
-                <div className="hidden xl:block">
-                    <ul className="hidden xl:flex justify-between space-x-20 font-semibold text-lg text-[#252535]  border-b-[#252535] px-20 p-6 font-jost transition-all duration-300">
-                        <li className="cursor-pointer"><Link to={'/'}>Home</Link></li>
-                        
-                        <li className="cursor-pointer"><Link to={'/browseskill'}>Browse Skills </Link></li>
-                        <li className="cursor-pointer"><Link to={'/message'}>Messages</Link></li>
-                        <li className="cursor-pointer"><Link to={'/meetboard'}>Meet Board</Link></li>
-                    </ul>
-                </div>
+                {userExist ?
+                    <>
+                        <div className="xl:hidden cursor-pointer" onClick={() => setDisplay(!display)}>
+                            <FontAwesomeIcon icon={faBars} className="text-2xl text-[#3d3d67] font-bold transition-all duration-300" />
+                        </div>
 
-                {/* Desktop Buttons */}
-                <div className="hidden xl:flex items-center space-x-5 font-semibold text-lg text-[#252535] font-jost">
-                    {!localStorage.getItem('accesstoken') ? (
-                        <>
-                            <button onClick={() => navigate('/signin')} className="hover:border-b-2 ">Sign In</button>
-                            <button disabled className="cursor-default">|</button>
-                            <button onClick={() => navigate('/signup')} className="hover:border-b-2">Sign Up</button>
-                        </>
-                    ) : (
-                        <>
-                            <button className="btn-hover" onClick={() => navigate('/userprofile')}>Profile</button>
-                            <button disabled className="cursor-default">|</button>
-                            <button onClick={handleLogout} className="btn-hover">Logout</button>
-                        </>
-                    )}
-                </div>
+                        {/* Desktop Menu */}
+                        <div className="hidden xl:block">
+                            <ul className="hidden xl:flex justify-between space-x-20 font-semibold text-lg text-[#252535]  border-b-[#252535] px-20 p-6 font-jost transition-all duration-300">
+                                <li className="cursor-pointer"><Link to={'/'}>Home</Link></li>
+
+                                <li className="cursor-pointer"><Link to={'/browseskill'}>Browse Skills </Link></li>
+                                <li className="cursor-pointer"><Link to={'/message'}>Messages</Link></li>
+                                <li className="cursor-pointer"><Link to={'/meetboard'}>Meet Board</Link></li>
+                            </ul>
+                        </div>
+
+                        {/* Desktop Buttons */}
+                        <div className="hidden xl:flex items-center space-x-5 font-semibold text-lg text-[#252535] font-jost">
+                            {!localStorage.getItem('accesstoken') ? (
+                                <>
+                                    <button onClick={() => navigate('/signin')} className="hover:border-b-2 ">Sign In</button>
+                                    <button disabled className="cursor-default">|</button>
+                                    <button onClick={() => navigate('/signup')} className="hover:border-b-2">Sign Up</button>
+                                </>
+                            ) : (
+                                <>
+                                    <button className="btn-hover" onClick={() => navigate('/userprofile')}>Profile</button>
+                                    <button disabled className="cursor-default">|</button>
+                                    <button onClick={handleLogout} className="btn-hover">Logout</button>
+                                </>
+                            )}
+                        </div>
+                    </>
+                    : (<>
+                        <div className='py-4 group text-lg w-1/6 relative font-jost flex items-center justify-end space-x-8 pr-4'>
+
+                            <div className='space-x-2 font-bold group-hover:animate-fade-in-right hidden group-hover:block'>
+                                {insomeLocation ?
+                                    <>
+                                        <button onClick={triggerTranslate}><span className='underline'>Translate To Hindi</span></button>
+                                    </>
+
+                                    :
+                                    <>
+                                        <button onClick={() => navigate('/signin')}>Sign in</button>
+                                        <span>|</span>
+                                        <button onClick={() => navigate('/signup')}>Sign up</button>
+                                    </>
+                                }
+                            </div>
+                            <FontAwesomeIcon icon={faEarth} size='2x' className='text-[#313152] animate-fade-in-up cursor-pointer' />
+
+                        </div>
+
+                    </>)
+                }
             </div>
 
             {/* Mobile Menu */}
@@ -63,7 +122,6 @@ function Header() {
                 <div className="header font-jost px-0 md:px-20 lg:flex items-center justify-between w-full xl:hidden animate-slide">
                     <ul className="flex flex-col justify-between items-start font-semibold text-sm md:text-lg text-[#252535] border-b-4 border-b-[#252535] md:px-20 p-6 font-jost space-y-4">
                         <li className="cursor-pointer"><Link to={'/'}>Home</Link></li>
-                        <li className="cursor-pointer"><Link to={'/aboutus'}>About</Link></li>
                         <li className="cursor-pointer"><Link to={'/browseskill'}>Browse Skills </Link></li>
                         <li className="cursor-pointer"><Link to={'/message'}>Messages</Link></li>
                         <li className="cursor-pointer"><Link to={'/meetboard'}>Meet Board</Link></li>

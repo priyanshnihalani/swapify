@@ -151,6 +151,33 @@ app.get('/peopleviewprofile/:id', async (request, response) => {
     }
 })
 
+const LIBRETRANSLATE_API_URL = "https://libretranslate.com/translate";
+
+app.post("/translate", async (req, res) => {
+    try {
+        const { text, source, target } = req.body;
+
+        const response = await fetch(LIBRETRANSLATE_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            body: JSON.stringify({
+                q: text,
+                source: source || "en",
+                target: target || "hi",
+                format: "text",
+            }),
+        });
+
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: "Translation failed" });
+    }
+});
+
 app.post('/register', async (request, response) => {
     const { name, email, password } = request.body;
 

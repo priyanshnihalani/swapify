@@ -781,7 +781,7 @@ function MeetRoom() {
     }, [socket, handleOffer, handleAnswer]);
 
 
-    const cleanupAndNavigate = () => {
+    const cleanupAndNavigate = async () => {
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
         }
@@ -797,6 +797,7 @@ function MeetRoom() {
         setRemoteStream(null);
         setIsConnected(false);
 
+        await swapskill()
         socket.disconnect();
         navigate('/meetboard', { state: { client: localName, host: remoteName, hostId: hostId } });
     };
@@ -855,7 +856,7 @@ function MeetRoom() {
     }
 
 
-    function callEnd() {
+    async function callEnd() {
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
         }
@@ -879,9 +880,10 @@ function MeetRoom() {
         connectionInitialized.current = false;
 
         if (host) {
-            // socket.emit('endCall');
-            swapskill()
-            console.log("hi")
+            socket.emit('endCall');
+        }
+        if(!host){
+            await swapskill()
         }
         socket.disconnect();
         navigate('/meetboard', !host ? { state: { client: localName, host: remoteName, hostId: hostId } } : {});
@@ -964,7 +966,7 @@ function MeetRoom() {
             </div>
         </div>
     ) : <>
-        {isJoin && host ?  <div className="font-jost w-1/5 backdrop-blur-sm py-4 space-y-4 px-4 rounded z-10 bottom-10 right-10 absolute bg-white/65">
+        {isJoin && host ?  <div className="animate-fade-in-up font-jost w-1/5 backdrop-blur-sm py-4 space-y-4 px-4 rounded z-10 bottom-10 right-10 absolute bg-white/65">
             <h1>{remoteName + " is asking to get in."}</h1>
             <button onClick={handleAdmit} className="rounded bg-gradient-to-tr from-[#252535] to-[#6c6c9b] text-white px-4 py-2">Admit</button>
         </div> : null}
