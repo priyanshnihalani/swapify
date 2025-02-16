@@ -154,7 +154,7 @@ app.get('/peopleviewprofile/:id', async (request, response) => {
 app.post('/updateRoom', async (request, response) => {
     const { userId, name, Ishost, roomId } = request.body;
     console.log({ userId, name, Ishost, roomId })
-
+    console.log(request.body)
     // try {
 
     //     await db.collection("room").insertOne({
