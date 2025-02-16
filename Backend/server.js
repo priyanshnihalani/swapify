@@ -29,8 +29,8 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: "https://swapiifyfrontend.vercel.app",
-    methods: ["GET", "POST","PUT", "PATCH", "DELETE"],
+    origin: ["https://swapiifyfrontend.vercel.app", "http://localhost:5173/"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
 
@@ -56,8 +56,8 @@ app.use(passport.session());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "https://swapiifyfrontend.vercel.app",
-        methods: ["GET", "POST","PUT", "PATCH", "DELETE"],
+        origin: ["https://swapiifyfrontend.vercel.app", "http://localhost:5173/"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     },
 });
 
@@ -151,7 +151,46 @@ app.get('/peopleviewprofile/:id', async (request, response) => {
     }
 })
 
+app.post('/updateRoom', async (request, response) => {
+    const { userId, name, Ishost, roomId } = request.body;
 
+    try {
+
+        await db.collection("room").insertOne({
+            userId, name, roomId, Ishost
+        })
+
+        response.status(201).json({
+            message: 'User Id Saved successfully'
+        })
+
+    }
+    catch (error) {
+        response.status(500).json({ message: 'Server error' });
+    }
+})
+
+app.get('/retriveHost/', async (request, response) => {
+    const id = new ObjectId(request.query.userId);
+    const roomid = new ObjectId(request.query.roomId);
+    try {
+        const record = await db.collection(room).findOne({
+            roomId: roomid,
+            userId: id
+        })
+
+        if (record) {
+            return response.status(200).send({record})
+        }
+
+        return response.status(400).send({ message: "Record Not Found" })
+
+    }
+    catch (error) {
+        console.log(error)
+        return response.status(500).send({ message: "Internal Server Error" })
+    }
+})
 app.post('/register', async (request, response) => {
     const { name, email, password } = request.body;
 

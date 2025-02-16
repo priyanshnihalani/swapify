@@ -21,6 +21,8 @@ function MeetBoard() {
     const location = useLocation();
     const [reviewed, setReviewed] = useState(false);
 
+    const backendUrl = import.meta.env.VITE.BACKEND_URL;
+
     useEffect(() => {
         if (location.state) {
             setDisplayRating(!location?.state.Ishost);
@@ -55,13 +57,49 @@ function MeetBoard() {
         setId(e.target.value);
     }
 
-    function handleJoin() {
+    async function handleJoin() {
         if (id) {
-            socket.emit("join-room", id, host);
+            const response = await fetch(`${backendUrl}/retriveHost?userId=${userId}&roomId=${id}`)
+
+            const result = await response.json();
+
+            if(result.status == "200"){
+                const host = {userId: result.record.userId, name: result.record.name, Ishost: result.record.Ishost}   
+                socket.emit("join-room", id, host);
+            }
+            else{
+                socket.emit("join-room", id, host);
+            }
+
             navigate(`/meetroom/${id}`);
+            
         } else {
             console.log("No room ID entered!");
         }
+    }
+
+    async function handleCopy(){
+        navigator.clipboard.writeText(generateRoomId)
+        setHost({ userId, name, Ishost: true });
+        const setRoomId  = await fetch(`${backendUrl}/updateRoom`, {
+            method: "POST",
+            "Content-Type" : "application/json",
+            body: JSON.stringify({
+                userId,
+                name,
+                Ishost: true,
+                roomId: generateRoomId
+            })
+        }) 
+
+        const result = await setRoomId.json();
+        if(result.status == "201"){
+            setDisplay(false)
+        }
+        else{
+            alert(result.message)
+        }
+
     }
 
     return (
@@ -120,7 +158,7 @@ function MeetBoard() {
                         <p className="text-gray-600">Send this to people that you want to meet with. Save it for later use.</p>
                         <div className="flex items-center justify-between bg-gray-200 p-3 rounded">
                             <p className="truncate">{generateRoomId}</p>
-                            <button onClick={() => navigator.clipboard.writeText(generateRoomId)}>
+                            <button onClick={handleCopy}>
                                 <FontAwesomeIcon icon={faCopy} />
                             </button>
                         </div>
