@@ -21,7 +21,7 @@ function MeetBoard() {
     const location = useLocation();
     const [reviewed, setReviewed] = useState(false);
 
-    const backendUrl = import.meta.env.VITE.BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
         if (location.state) {
@@ -72,7 +72,7 @@ function MeetBoard() {
             }
 
             navigate(`/meetroom/${id}`);
-            
+
         } else {
             console.log("No room ID entered!");
         }
