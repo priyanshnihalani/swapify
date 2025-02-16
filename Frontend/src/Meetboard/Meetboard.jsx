@@ -67,7 +67,7 @@ function MeetBoard() {
                 const host = {userId: result.record.userId, name: result.record.name, Ishost: result.record.Ishost}   
                 socket.emit("join-room", id, host);
             }
-            else{
+            else if(result.status == "400"){
                 socket.emit("join-room", id, host);
             }
 
@@ -92,8 +92,14 @@ function MeetBoard() {
             })
         }) 
 
+        console.log({userId,
+            name,
+            Ishost: true,
+            roomId: generateRoomId})
+
         const result = await setRoomId.json();
-        if(result.status == "201"){
+        console.log(result)
+        if(result.message == "User Id Saved successfully"){
             setDisplay(false)
         }
         else{

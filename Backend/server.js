@@ -153,21 +153,22 @@ app.get('/peopleviewprofile/:id', async (request, response) => {
 
 app.post('/updateRoom', async (request, response) => {
     const { userId, name, Ishost, roomId } = request.body;
+    console.log({ userId, name, Ishost, roomId })
 
-    try {
+    // try {
 
-        await db.collection("room").insertOne({
-            userId, name, roomId, Ishost
-        })
+    //     await db.collection("room").insertOne({
+    //         userId, name, roomId, Ishost
+    //     })
 
-        response.status(201).json({
-            message: 'User Id Saved successfully'
-        })
+    //     response.status(201).json({
+    //         message: 'User Id Saved successfully'
+    //     })
 
-    }
-    catch (error) {
-        response.status(500).json({ message: 'Server error' });
-    }
+    // }
+    // catch (error) {
+    //     response.status(500).json({ message: 'Server error' });
+    // }
 })
 
 app.get('/retriveHost/', async (request, response) => {
