@@ -209,7 +209,9 @@ function PeopleViewProfile() {
     if (message.trim() && receiverId) {
       socket.emit('send-message', myId, receiverId, message);
       setMessages(prevMessages => [...prevMessages, { message: message, type: 'sent' }]);
+
       setMessage('');
+      
       const timestamp = new Date().getTime();
 
       async function sendMessageDB() {

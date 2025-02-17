@@ -3,21 +3,25 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import signinImage from '../assets/images/signin.png';
 import logo from '../assets/images/logo2.png';
+import { faSlash } from '@fortawesome/free-solid-svg-icons';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function SignIn() {
     const navigate = useNavigate();
-    
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
         if (localStorage.getItem('token')) {
             navigate('/');
         }
     }, [navigate]);
 
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors }, reset } = useForm();
     
     async function onSubmit(data) {
+        setLoading(true)
+
         const response = await fetch(`${backendUrl}/login`, {
             method: 'POST',
             headers: {
@@ -27,8 +31,14 @@ function SignIn() {
             credentials: "include"
         });
 
+        
+
         const responseData = await response.json();
+        setLoading(false)
+
         alert(responseData.message);
+
+        reset();
 
         if (responseData.message === 'Welcome Back!') {
             localStorage.setItem('accesstoken', responseData.accesstoken);
@@ -96,7 +106,7 @@ function SignIn() {
                         
                         <div className="w-full mt-8">
                             <button className="w-full bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-extrabold text-white p-3 rounded-md" type='submit'>
-                                Sign In
+                                {loading ? <div className="mx-auto forgetloader"></div> : <span>Sign In</span>}
                             </button>
                             <hr className="border border-gray-300 my-5" />
                             <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded-lg p-[3px]">

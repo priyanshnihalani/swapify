@@ -64,12 +64,12 @@ function MeetBoard() {
 
             const result = await response.json();
 
-            if(result.status == "200"){
-                const host = {userId: result.record.userId, name: result.record.name, Ishost: result.record.Ishost}   
-                // socket.emit("join-room", id, host);
-                console.log(host)
+            if (result.record) {
+                const host = { userId: result.record.userId, name: result.record.name, Ishost: result.record.Ishost }
+                socket.emit("join-room", id, host);
+
             }
-            else if(result.status == "400"){
+            else if (result.message == "Record Not Found") {
                 socket.emit("join-room", id, host);
             }
 
@@ -80,13 +80,13 @@ function MeetBoard() {
         }
     }
 
-    async function handleCopy(){
+    async function handleCopy() {
         navigator.clipboard.writeText(generateRoomId)
         setHost({ userId, name, Ishost: true });
-        const setRoomId  = await fetch(`${backendUrl}/updateRoom`, {
+        const setRoomId = await fetch(`${backendUrl}/updateRoom`, {
             method: "POST",
-            headers:{
-                "Content-Type" : "application/json",
+            headers: {
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 userId,
@@ -94,19 +94,21 @@ function MeetBoard() {
                 Ishost: true,
                 roomId: generateRoomId
             })
-        }) 
+        })
 
-        console.log({userId,
+        console.log({
+            userId,
             name,
             Ishost: true,
-            roomId: generateRoomId})
+            roomId: generateRoomId
+        })
 
         const result = await setRoomId.json();
         console.log(result)
-        if(result.message == "User Id Saved successfully"){
+        if (result.message == "User Id Saved successfully") {
             setDisplay(false)
         }
-        else{
+        else {
             alert(result.message)
         }
 
@@ -176,7 +178,11 @@ function MeetBoard() {
                 </div>
             )}
 
-            {displayRating && <Rating display={setDisplayRating} data={location?.state} reviewed={setReviewed} />}
+            {displayRating && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+                    <Rating display={setDisplayRating} data={location?.state} reviewed={setReviewed} />
+                </div>
+            )}
         </>
     );
 }

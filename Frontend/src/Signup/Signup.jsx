@@ -6,8 +6,9 @@ import { useForm } from 'react-hook-form';
 
 function SignUp() {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors } } = useForm();
-
+    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const [loading, setLoading] = useState(false)
+    
     useEffect(() => {
         const token = localStorage.getItem('accesstoken');
         if (token) {
@@ -21,6 +22,7 @@ function SignUp() {
 
     async function onSubmit(userData) {
         try {
+            setLoading(true);
             const response = await fetch(`${backendUrl}/register`, {
                 method: 'POST',
                 headers: {
@@ -32,6 +34,9 @@ function SignUp() {
             const result = await response.json();
             alert(result.message);
             console.log(result);
+
+            reset();
+
             localStorage.setItem('name', result.name);
             localStorage.setItem('accesstoken', result.accesstoken);
             localStorage.setItem('id', result.id);
@@ -39,6 +44,9 @@ function SignUp() {
         }
         catch (error) {
             console.log(error);
+        }
+        finally{
+            setLoading(false)
         }
     }
 
@@ -90,7 +98,7 @@ function SignUp() {
                             />
                             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
-                            {showToolTip && <div className='w-1/4 bg-black text-white px-8 py-2 opacity-60 rounded-full absolute top-[16rem] transition-colors'>Make sure your email is linked to a valid provider like Google, Yahoo, etc.</div>}
+                            {showToolTip && <div className='w-3/4 md:w-1/4 bg-black text-white px-8 py-2 opacity-60 rounded-full absolute top-[16rem] transition-colors'>Make sure your email is linked to a valid provider like Google, Yahoo, etc.</div>}
                             
                             <input
                                 type="password"
@@ -108,7 +116,7 @@ function SignUp() {
                         </div>
                         <div className="w-full mt-8">
                             <button className="w-full bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-extrabold text-white p-3 rounded-md" type="submit">
-                                Sign Up
+                            {loading ? <div className="mx-auto forgetloader"></div> : <span>Sign In</span>}
                             </button>
                             <hr className="border border-gray-300 my-5" />
                             <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded-lg p-[3px]">
@@ -130,8 +138,8 @@ function SignUp() {
                     <div className="w-[80%] mt-10 lg:w-[80%] lg:mt-4">
                         <p className="text-xs lg:text-sm">
                             By signing up, you agree to Swapify's
-                            <span className="underline"> Terms of Service</span> and
-                            <span className="underline"> Privacy Policy</span>. You may also receive important updates and promotional communications from Swapify at the email address provided.
+                            <Link to={'/termsandcondition'} className="underline"> Terms of Service</Link> and
+                            <Link to={'/privacypolicy'} className="underline "> Privacy Policy</Link>. You may also receive important updates and promotional communications from Swapify at the email address provided.
                         </p>
                     </div>
                 </div>

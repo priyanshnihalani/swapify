@@ -32,7 +32,7 @@ function ResetPassword() {
 
     function handleClose() {
         setMessage(null)
-        window.location.href = 'http://localhost:5173/'
+        window.location.href = '/'
     }
 
     return (

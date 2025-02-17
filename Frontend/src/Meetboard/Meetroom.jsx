@@ -45,32 +45,65 @@ function MeetRoom() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     // Step 1: Initialize media streams
-    const initializeMedia = async (videoenabled = true, audioenabled = true) => {
+    const initializeMedia = async (videoEnabled = true, audioEnabled = true) => {
         try {
+            // Stop any existing tracks before requesting new ones
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
 
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: videoenabled ? {
+                video: videoEnabled ? {
                     facingMode: 'user'
                 } : false,
-                audio: audioenabled ? {
+                audio: audioEnabled ? {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    autoGainControl: true,
-                    voiceIsolation: true
-
+                    autoGainControl: true
                 } : false
             });
 
             setLocalStream(stream);
-            console.log(navigator.mediaDevices.getSupportedConstraints());
 
+            // Set up video element if it exists
             if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream;
+                try {
+                    await localVideoRef.current.play();
+                } catch (playError) {
+                    console.error('Playback prevented:', playError);
+                }
             }
+
+            // Update peer connection if it exists and is connected
+            if (peerRef.current?.connectionState === 'connected') {
+                const senders = peerRef.current.getSenders();
+
+                if (videoEnabled) {
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const videoSender = senders.find(sender => sender.track?.kind === "video");
+                    if (videoSender && videoTrack) {
+                        await videoSender.replaceTrack(videoTrack);
+                    }
+                }
+
+                if (audioEnabled) {
+                    const audioTrack = stream.getAudioTracks()[0];
+                    const audioSender = senders.find(sender => sender.track?.kind === "audio");
+                    if (audioSender && audioTrack) {
+                        await audioSender.replaceTrack(audioTrack);
+                    }
+                }
+            }
+
+            return stream;
         } catch (err) {
             console.error('Error accessing media devices:', err);
+            setCamera(false);
+            setMicrophone(false);
+            throw err;
         }
-    }
+    };
 
     useEffect(() => {
         initializeMedia();
@@ -97,16 +130,16 @@ function MeetRoom() {
                             "stun:global.stun.twilio.com:3478"
                         ]
                     },
-                    {
-                        urls: "turn:openrelay.metered.ca:80",
-                        username: "openrelayproject",
-                        credential: "openrelayproject"
-                    },
-                    {
-                        urls: "turn:openrelay.metered.ca:443",
-                        username: "openrelayproject",
-                        credential: "openrelayproject"
-                    }
+                    // {
+                    //     urls: "turn:openrelay.metered.ca:80",
+                    //     username: "openrelayproject",
+                    //     credential: "openrelayproject"
+                    // },
+                    // {
+                    //     urls: "turn:openrelay.metered.ca:443",
+                    //     username: "openrelayproject",
+                    //     credential: "openrelayproject"
+                    // }
                 ]
 
             });
@@ -642,131 +675,45 @@ function MeetRoom() {
     }, []);
 
 
-    async function toggleCamera() {
-        console.log(remoteStream)
+    const toggleCamera = async () => {
         const newCameraState = !camera;
         setCamera(newCameraState);
 
         try {
-
-            if (localStream) {
+            if (newCameraState) {
+                await initializeMedia(true, microphone);
+            } else if (localStream) {
                 const videoTracks = localStream.getVideoTracks();
-                if (videoTracks.length > 0 && !newCameraState) {
-                    // If turning off the camera, disable the video track
-                    videoTracks.forEach(track => track.enabled = false);
-                } else if (newCameraState) {
-                    // If turning the camera back on, get a new stream
-                    const newStream = await getNewMediaStream(true, microphone);
-
-                    // Set the local stream properly
-                    setLocalStream(newStream);
-                    const videoTrack = newStream.getVideoTracks()[0];
-
-                    // Check if the video track is properly added to the video element
-                    const videoElement = document.querySelector("#localVideo"); // Replace with your video element selector
-                    if (videoElement) {
-                        videoElement.srcObject = newStream;
-                    }
-
-                    // Update peer connection if it's connected
-                    if (peerRef.current && peerRef.current.connectionState === 'connected') {
-                        const senders = peerRef.current.getSenders();
-                        const videoSender = senders.find(sender => sender.track?.kind === "video");
-                        if (videoSender) {
-                            await videoSender.replaceTrack(videoTrack);
-                        }
-                    }
-                }
-            } else if (newCameraState) {
-                // If there's no current stream, create a new stream with video enabled
-                const newStream = await getNewMediaStream(true, microphone);
-                setLocalStream(newStream);
+                videoTracks.forEach(track => {
+                    track.stop(); // Actually stop the track
+                    track.enabled = false;
+                });
             }
         } catch (err) {
             console.error("Error toggling camera:", err);
-            // Revert camera state on error
-            setCamera(!newCameraState);
+            setCamera(!newCameraState); // Revert state on error
         }
-    }
-
-
-
-    async function toggleMicrophone() {
+    };
+    const toggleMicrophone = async () => {
         const newMicState = !microphone;
         setMicrophone(newMicState);
 
         try {
-            if (localStream) {
+            if (newMicState) {
+                await initializeMedia(camera, true);
+            } else if (localStream) {
                 const audioTracks = localStream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    audioTracks.forEach(track => {
-                        track.enabled = newMicState; // Enable/disable based on new state
-                    });
-                } else {
-                    // If no audio tracks exist, get a new stream
-                    await getNewMediaStream(camera, newMicState);
-                }
-            } else if (newMicState) {
-                await getNewMediaStream(camera, newMicState);
+                audioTracks.forEach(track => {
+                    track.stop(); // Actually stop the track
+                    track.enabled = false;
+                });
             }
         } catch (err) {
             console.error("Error toggling microphone:", err);
             setMicrophone(!newMicState); // Revert state on error
         }
-    }
+    };
 
-    async function getNewMediaStream(videoEnabled, audioEnabled) {
-        try {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-
-            if (!videoEnabled && !audioEnabled) {
-                setLocalStream(null);
-                return;
-            }
-
-            const constraints = {
-                video: videoEnabled ? { facingMode: "user" } : false,
-                audio: audioEnabled
-            };
-
-            const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-            setLocalStream(newStream);
-
-            // If peer connection exists and is active, replace tracks
-            if (peerRef.current && peerRef.current.connectionState === 'connected') {
-                const senders = peerRef.current.getSenders();
-
-                // Replace video track
-                if (videoEnabled) {
-                    const videoTrack = newStream.getVideoTracks()[0];
-                    const videoSender = senders.find(sender => sender.track?.kind === "video");
-                    if (videoSender && videoTrack) {
-                        await videoSender.replaceTrack(videoTrack);
-                    }
-                }
-
-                // Replace audio track
-                if (audioEnabled) {
-                    const audioTrack = newStream.getAudioTracks()[0];
-                    const audioSender = senders.find(sender => sender.track?.kind === "audio");
-                    if (audioSender && audioTrack) {
-                        await audioSender.replaceTrack(audioTrack);
-                    }
-                }
-            }
-
-            return newStream; // Ensure the new stream is returned
-        } catch (err) {
-            console.error("Error getting media stream:", err);
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-            setLocalStream(null);
-            throw err; // Propagate error to handle state reversions
-        }
-    }
 
 
     useEffect(() => {
@@ -830,29 +777,29 @@ function MeetRoom() {
 
         try {
             const learnSkillResponse = await fetch(
-                `${backendUrl}/learnSkill?learner=${learner}&teacher=${teacher}`, 
+                `${backendUrl}/learnSkill?learner=${learner}&teacher=${teacher}`,
                 { method: "PATCH" }
             );
-        
+
             if (!learnSkillResponse.ok) {
                 throw new Error(`Error in learnSkill: ${learnSkillResponse.statusText}`);
             }
-        
+
             const teachSkillResponse = await fetch(
-                `${backendUrl}/teachSkill?teacher=${teacher}&learner=${learner}`, 
+                `${backendUrl}/teachSkill?teacher=${teacher}&learner=${learner}`,
                 { method: "PATCH" }
             );
-        
+
             if (!teachSkillResponse.ok) {
                 throw new Error(`Error in teachSkill: ${teachSkillResponse.statusText}`);
             }
-        
+
             console.log("Skill swap successful");
-        
+
         } catch (err) {
             console.error("Failed to swap skills", err);
         }
-        
+
     }
 
 
@@ -882,7 +829,7 @@ function MeetRoom() {
         if (host) {
             socket.emit('endCall');
         }
-        if(!host){
+        if (!host) {
             await swapskill()
         }
         socket.disconnect();
@@ -966,24 +913,43 @@ function MeetRoom() {
             </div>
         </div>
     ) : <>
-        {isJoin && host ?  <div className="animate-fade-in-up font-jost w-1/5 backdrop-blur-sm py-4 space-y-4 px-4 rounded z-10 bottom-10 right-10 absolute bg-white/65">
-            <h1>{remoteName + " is asking to get in."}</h1>
-            <button onClick={handleAdmit} className="rounded bg-gradient-to-tr from-[#252535] to-[#6c6c9b] text-white px-4 py-2">Admit</button>
-        </div> : null}
+        {isJoin && host ? (
+            <div className="animate-fade-in-up font-jost 
+                  fixed bottom-5 right-5 sm:bottom-10 sm:right-10 
+                  w-[90%] sm:w-3/5 md:w-2/5 lg:w-1/4 xl:w-1/5 
+                  backdrop-blur-sm py-4 px-4 space-y-4 
+                  rounded-lg shadow-lg z-50 bg-white/75">
+                <h1 className="text-sm sm:text-base md:text-lg font-semibold">
+                    {remoteName + " is asking to get in."}
+                </h1>
+                <button
+                    onClick={handleAdmit}
+                    className="w-full sm:w-auto px-4 py-2 
+                 rounded bg-gradient-to-tr from-[#252535] to-[#6c6c9b] 
+                 text-white text-sm sm:text-base hover:opacity-90 transition">
+                    Admit
+                </button>
+            </div>
+        ) : null}
+
         <div className="font-jost relative w-full h-screen bg-gray-900 text-white">
             <div className="relative w-full h-screen bg-[#252535] text-white overflow-hidden">
                 {/* Remote Video */}
-                <div className="alignment relative w-full h-[85vh] p-4 flex justify-center items-center">
-                    <div className="relative w-[90vw] h-full rounded-xl overflow-hidden bg-gray-800">
-                        {renderVideoContainer(remoteStream, false)}
+                {remoteStream && (
+                    <div className="alignment relative w-full h-[85vh] p-4 flex justify-center items-center">
+                        <div className="relative w-[90vw] h-full rounded-xl overflow-hidden bg-gray-800">
+                            {renderVideoContainer(remoteStream, false)}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* Local Video */}
-                <div className={`
-                    ${!remoteStream || !inMeet ? 'w-full h-full p-4' : 'absolute bottom-4 right-4 w-40 md:w-80 aspect-video'} 
-                    transition-all duration-300 ease-in-out
-                `}>
+                {/* Local Video - Improved for Mobile */}
+                <div
+                    className={`transition-all duration-300 ease-in-out ${!remoteStream || !inMeet
+                        ? 'w-full h-full p-4'
+                        : 'absolute right-8 bottom-6 md:bottom-4 md:right-4 md:w-80 sm:right-2 sm:bottom-2 sm:w-[60vw] sm:max-w-[70vw] aspect-video'
+                        }`}
+                >
                     {renderVideoContainer(localStream, true)}
                 </div>
 
@@ -991,6 +957,7 @@ function MeetRoom() {
                 {renderControls()}
             </div>
         </div>
+
 
 
     </>)

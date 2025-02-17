@@ -50,7 +50,7 @@ function Header() {
 
 
     const triggerTranslate = () => {
-        setTimeout(() => {
+
           const select = document.querySelector(".goog-te-combo");
           if (select) {
             select.value = "hi";
@@ -58,8 +58,7 @@ function Header() {
           } else {
             console.warn("Google Translate dropdown not found.");
           }
-        }, 3000); // 3-second delay to allow time for the dropdown to load
-      };
+        }
 
 
     return (
@@ -108,8 +107,9 @@ function Header() {
                         </div>
                     </>
                     : (<>
-                        <div className='py-4 group text-lg w-1/6 relative font-jost flex items-center justify-end space-x-8 pr-4'>
-                            <div className='space-x-2 font-bold group-hover:animate-fade-in-right hidden group-hover:block'>
+                        <div className='py-4 group text-lg w-1/2 lg:w-1/4 relative font-jost flex flex-col-reverse items-end  md:flex-row md:items-end justify-end space-x-8 pr-4'>
+                            <div className='
+                            w-full absolute top-14 left-16 md:static mt-4 md:mt-0 md:w-1/2  space-x-2 font-bold group-hover:animate-fade-in-right hidden group-hover:flex lg:pl-4'>
                                 {insomeLocation ?
                                     <>
                                     <div id="google_translate_element" className='hidden'></div>
@@ -117,11 +117,11 @@ function Header() {
                                     </>
 
                                     :
-                                    <>
+                                    <div className='space-x-2'>
                                         <button onClick={() => navigate('/signin')}>Sign in</button>
                                         <span>|</span>
                                         <button onClick={() => navigate('/signup')}>Sign up</button>
-                                    </>
+                                    </div>
                                 }
                             </div>
                             <FontAwesomeIcon icon={faEarth} size='2x' className='text-[#313152] animate-fade-in-up cursor-pointer' />
