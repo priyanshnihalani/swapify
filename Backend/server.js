@@ -342,7 +342,7 @@ app.post('/forgotpassword', async (request, response) => {
             }
         })
 
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
         const mailOptions = {
             from: process.env.MAILER_USER,
