@@ -17,11 +17,10 @@ function Footer() {
                 <div className="text-center md:text-left">
                     <h1 className="font-extrabold">Follow Us On</h1>
                     <ul className="mt-5 space-y-2">
-                        <li>Facebook</li>
-                        <li>Instagram</li>
-                        <li>Twitter</li>
-                        <li>LinkedIn</li>
-                        <li>Youtube</li>
+                        <li><Link to={'https://www.facebook.com/priyansh.nihalani'}>Facebook</Link></li>
+                        <li><Link to={'https://www.instagram.com/priyansh_nihalani_16904'}>Instagram</Link></li>
+                        <li><Link to={'https://x.com/PriyanshNi53075'}>Twitter</Link></li>
+                        <li><Link to={'https://www.linkedin.com/in/priyansh-nihalani/'}>LinkedIn</Link></li>
                     </ul>
                 </div>
                 <div className="text-center md:text-left">
