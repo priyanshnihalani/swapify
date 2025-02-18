@@ -29,7 +29,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: "https://swapiifyfrontend.vercel.app",
+    origin: "https://swapiify.vercel.app/",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
@@ -56,7 +56,7 @@ app.use(passport.session());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "https://swapiifyfrontend.vercel.app",
+        origin: "https://swapiify.vercel.app/",
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     },
 });
@@ -342,7 +342,7 @@ app.post('/forgotpassword', async (request, response) => {
             }
         })
 
-        const resetUrl = `https://swapiifyfrontend.vercel.app/reset-password/${resetToken}`;
+        const resetUrl = `https://swapiify.vercel.app//reset-password/${resetToken}`;
 
         const mailOptions = {
             from: process.env.MAILER_USER,
