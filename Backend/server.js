@@ -342,7 +342,7 @@ app.post('/forgotpassword', async (request, response) => {
             }
         })
 
-        const resetUrl = `https://swapiify.vercel.app//reset-password/${resetToken}`;
+        const resetUrl = `https://swapiify.vercel.app/reset-password/${resetToken}`;
 
         const mailOptions = {
             from: process.env.MAILER_USER,
