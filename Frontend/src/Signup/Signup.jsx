@@ -116,7 +116,7 @@ function SignUp() {
                         </div>
                         <div className="w-full mt-8">
                             <button className="w-full bg-gradient-to-r from-[#252535] to-[#6C6C9B] font-extrabold text-white p-3 rounded-md" type="submit">
-                            {loading ? <div className="mx-auto forgetloader"></div> : <span>Sign In</span>}
+                            {loading ? <div className="mx-auto forgetloader"></div> : <span>Sign Up</span>}
                             </button>
                             <hr className="border border-gray-300 my-5" />
                             <div className="bg-gradient-to-r from-[#252535] to-[#6C6C9B] rounded-lg p-[3px]">
