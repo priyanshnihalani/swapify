@@ -115,7 +115,7 @@ function Home() {
                             transition-transform duration-300 hover:scale-110" onClick={() => navigate('/learnmore')}>
                                 Learn More
                             </button>
-                            <button onClick={installPWA} className={`inline animate-bounce text-white bg-gradient-to-tr from-[#252535] to-[#6c6c9d] py-2 px-3 rounded-full`}><FontAwesomeIcon icon={faDownload} size="1x" /></button>
+                            <button onClick={installPWA} className={`${deferredPrompt ? "inline" : "hidden"} animate-bounce text-white bg-gradient-to-tr from-[#252535] to-[#6c6c9d] py-2 px-3 rounded-full`}><FontAwesomeIcon icon={faDownload} size="1x" /></button>
                         </div>
                     </div>
                     <div className="flex justify-start items-start w-full animate-fade-in-right">
