@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
 import heroImage from "../assets/images/sharing.png"
@@ -6,12 +6,38 @@ import process from "../assets/images/process.png"
 import features from '../assets/images/features.png'
 import popular from '../assets/images/popular.png'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAd, faChain, faLightbulb, faPen, faPenFancy, faSignIn, faTachographDigital } from "@fortawesome/free-solid-svg-icons";
+import { faAd, faChain, faDownload, faLightbulb, faPen, faPenFancy, faSignIn, faTachographDigital } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from 'react-router-dom';
 
 function Home() {
     const token = localStorage.getItem('accesstoken');
     const navigate = useNavigate();
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (event) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            event.preventDefault();
+            console.log('BeforeInstallPromptEvent triggered');
+            setDeferredPrompt(event);
+        };
+    
+        // Log if the app is already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('App is already installed');
+        }
+    
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            setDeferredPrompt(null);
+        });
+    
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
     useEffect(() => {
 
         if (token) {
@@ -48,6 +74,26 @@ function Home() {
         }
     }, []);
 
+    function installPWA() {
+        console.log('Install button clicked');
+        console.log('Deferred prompt value:', deferredPrompt);
+        
+        if (!deferredPrompt) {
+            console.log('No deferred prompt available');
+            return;
+        }
+    
+        deferredPrompt.prompt();
+        
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+            setDeferredPrompt(null);
+        });
+    }
 
     return (
         <div className="Home overflow-x-hidden flex flex-col min-h-screen">
@@ -61,12 +107,16 @@ function Home() {
                             transition-all duration-1000 hover:scale-105">
                             Share your expertise, gain new skills, and grow together!
                         </h1>
-                        <button className="mx-auto mt-6 bg-gradient-to-r p-3 rounded-md md:px-6 from-[#252535] to-[#6C6C9B] 
+                        <div className="space-x-4">
+
+                            <button className="mx-auto mt-6 bg-gradient-to-r p-3 rounded-md md:px-6 from-[#252535] to-[#6C6C9B]
                             font-extrabold text-white md:mt-10 text-md 
-                            animate-bounce hover:animate-none 
+                            hover:animate-none 
                             transition-transform duration-300 hover:scale-110" onClick={() => navigate('/learnmore')}>
-                            Learn More
-                        </button>
+                                Learn More
+                            </button>
+                            <button onClick={installPWA} className={`inline animate-bounce text-white bg-gradient-to-tr from-[#252535] to-[#6c6c9d] py-2 px-3 rounded-full`}><FontAwesomeIcon icon={faDownload} size="1x" /></button>
+                        </div>
                     </div>
                     <div className="flex justify-start items-start w-full animate-fade-in-right">
                         <img
