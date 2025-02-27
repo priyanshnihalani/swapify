@@ -29,12 +29,12 @@ function Message() {
     const [myId, setMyId] = useState(null)
     const [isblock, setisBlock] = useState(false)
     const navigate = useNavigate()
-
+    const [messageExist, setMessageExist] = useState(false)
     useEffect(() => {
         if (chatRef.current) {
-          chatRef.current.scrollTop = chatRef.current.scrollHeight;
+            chatRef.current.scrollTop = chatRef.current.scrollHeight;
         }
-      }, [messages]);
+    }, [messages]);
 
     useEffect(() => {
         const accesstoken = localStorage.getItem("accesstoken")
@@ -64,11 +64,15 @@ function Message() {
                 setLoading(true); // Set loading to true when fetching starts
                 const response = await fetch(`${backendUrl}/messages/${myId}`);
                 const result = await response.json();
-                if(result.message == "No Opponents found"){
+                if (result.message == "No Opponents found") {
                     setLoading(false)
+                    setMessageExist(false)
                 }
+                else {
 
-                setData(result);
+                    setData(result);
+                    setMessageExist(true);
+                }
                 console.log(result)
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -288,8 +292,8 @@ function Message() {
     return (
 
         <div>
-            {hastoken || <Header />}
-            {hastoken ? (<div>
+            {<Header />}
+            {messageExist ? (<div>
                 {loading ? (
                     <LoaderAnimation />
                 ) : (
@@ -380,7 +384,7 @@ function Message() {
                     <img src={messageImage} className="w-[40%] alignment" />
                 </div>
             )}
-            {hastoken || <Footer />}
+            {<Footer />}
         </div>
 
 
