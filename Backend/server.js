@@ -810,8 +810,10 @@ app.get('/messages/:id', async (request, response) => {
     const opponentIds = [...opponent];
 
 
-    if (opponentIds.length === 0) {
+    if (messages.length === 0 ||  opponentIds.length === 0) {
         console.log("No opponents found.");
+        response.send({message: "No Opponents found"})
+
     }
     else {
         const objectIds = opponentIds.map(id => new ObjectId(id));

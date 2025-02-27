@@ -64,6 +64,10 @@ function Message() {
                 setLoading(true); // Set loading to true when fetching starts
                 const response = await fetch(`${backendUrl}/messages/${myId}`);
                 const result = await response.json();
+                if(result.message == "No Opponents found"){
+                    setLoading(false)
+                }
+
                 setData(result);
                 console.log(result)
             } catch (error) {

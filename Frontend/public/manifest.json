@@ -10,10 +10,28 @@
     "icons": [
         {
             "src": "/logo2.png",
-            "sizes": "192x192",
+            "sizes": "351x313",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/Squarelogo.PNG",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/ComputerScreenShot.png",
+            "sizes": "2880x1630",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/MobileScreenShot.png",
+            "sizes": "664x1432",
+            "type": "image/png"
         }
     ]
-  }
-  
+}

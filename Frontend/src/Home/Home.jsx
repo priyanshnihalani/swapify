@@ -13,28 +13,29 @@ function Home() {
     const token = localStorage.getItem('accesstoken');
     const navigate = useNavigate();
     const [deferredPrompt, setDeferredPrompt] = useState(null);
-
+    const [installed, setIsInstalled] = useState(false)
     useEffect(() => {
         const handleBeforeInstallPrompt = (event) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
             event.preventDefault();
-            console.log('BeforeInstallPromptEvent triggered');
+            console.log("BeforeInstallPromptEvent triggered");
             setDeferredPrompt(event);
         };
-    
-        // Log if the app is already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('App is already installed');
+
+        // Check if app is already installed
+        if (window.matchMedia("(display-mode: standalone)").matches) {
+            console.log("App is already installed");
+            setIsInstalled(true);
         }
-    
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA was installed');
+
+        window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+        window.addEventListener("appinstalled", () => {
+            console.log("PWA was installed");
             setDeferredPrompt(null);
         });
-    
+
         return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
         };
     }, []);
 
@@ -77,14 +78,14 @@ function Home() {
     function installPWA() {
         console.log('Install button clicked');
         console.log('Deferred prompt value:', deferredPrompt);
-        
+
         if (!deferredPrompt) {
             console.log('No deferred prompt available');
             return;
         }
-    
+
         deferredPrompt.prompt();
-        
+
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
                 console.log('User accepted the install prompt');
@@ -115,7 +116,11 @@ function Home() {
                             transition-transform duration-300 hover:scale-110" onClick={() => navigate('/learnmore')}>
                                 Learn More
                             </button>
-                            <button onClick={installPWA} className={`${deferredPrompt ? "inline" : "hidden"} animate-bounce text-white bg-gradient-to-tr from-[#252535] to-[#6c6c9d] py-2 px-3 rounded-full`}><FontAwesomeIcon icon={faDownload} size="1x" /></button>
+                            {deferredPrompt && (
+                                <button onClick={installPWA} className="inline animate-bounce text-white bg-gradient-to-tr from-[#252535] to-[#6c6c9d] py-2 px-3 rounded-full">
+                                    <FontAwesomeIcon icon={faDownload} size="1x" />
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div className="flex justify-start items-start w-full animate-fade-in-right">

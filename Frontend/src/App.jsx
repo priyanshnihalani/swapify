@@ -44,7 +44,6 @@ function App() {
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/dashboard" element={<DashBoard />} />
                     <Route path="/chatroom" element={<Chat />} />
-                    <Route path="/chatroom" element={<Chat />} />
                     <Route path="/message" element={<Message />} />
                     <Route path="/peopleviewprofile/:uid" element={<PeopleViewProfile />} />
                     <Route path="/learnmore" element={<LearnMore />} />
@@ -59,16 +58,12 @@ function App() {
 }
 export default App;
 
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then((registration) => {
-          console.log("Service Worker registered:", registration);
-        })
-        .catch((error) => {
-          console.log("Service Worker registration failed:", error);
-        });
-    });
-  }
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(reg => console.log('Service Worker Registered:', reg))
+      .catch(err => console.error('Service Worker Error:', err));
+  });
+}
   
