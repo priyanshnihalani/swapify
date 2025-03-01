@@ -275,6 +275,7 @@ function UserViewProfile() {
 
 
     async function handleCharges() {
+        setData(prev => ({ ...prev, charges: rate }))
         const response = await fetch(`${backendUrl}/charges/${data._id}`, {
             method: "PATCH",
             headers: {
@@ -360,7 +361,7 @@ function UserViewProfile() {
 
                 {
                     chargeCard && (
-                        <div className='bg-white flex flex-col z-20 font-jost sm:w-1/4 h-[200px] px-10 absolute top-[50%] left-[50%] shadow-lg shadow-[#252535] rounded-xl space-y-6 py-4' style={{ transform: "translate(-50%, -50%)" }}>
+                        <div className='bg-white flex flex-col z-20 font-jost sm:w-1/4 h-[200px] px-10 absolute top-[30%] left-[50%] shadow-lg shadow-[#252535] rounded-xl space-y-6 py-4' style={{ transform: "translate(-50%, -50%)" }}>
                             <div className='flex justify-between'>
                                 <p>Min: 1</p>
                                 <p>Max: 5</p>
