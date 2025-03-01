@@ -292,7 +292,6 @@ function Message() {
     return (
 
         <div>
-            {<Header />}
             {messageExist ? (<div>
                 {loading ? (
                     <LoaderAnimation />
@@ -369,9 +368,13 @@ function Message() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex justify-center items-center h-full">
-                                        <img src={messageImage} alt="message-image" className="max-w-[300px]" />
-                                    </div>
+                                    <>
+                                        {<Header />}
+
+                                        <div className="flex justify-center items-center h-full">
+                                            <img src={messageImage} alt="message-image" className="max-w-[300px]" />
+                                        </div>
+                                    </>
                                 )}
                             </div>
 
