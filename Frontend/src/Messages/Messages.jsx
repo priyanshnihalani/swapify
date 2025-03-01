@@ -369,7 +369,6 @@ function Message() {
                                     </div>
                                 ) : (
                                     <>
-                                        {<Header />}
 
                                         <div className="flex justify-center items-center h-full">
                                             <img src={messageImage} alt="message-image" className="max-w-[300px]" />
@@ -383,9 +382,13 @@ function Message() {
                     </>
                 )}
             </div>) : (
-                <div className="relative min-h-screen">
-                    <img src={messageImage} className="w-[40%] alignment" />
-                </div>
+                <>
+                    {<Header />}
+
+                    <div className="relative min-h-screen">
+                        <img src={messageImage} className="w-[40%] alignment" />
+                    </div>
+                </>
             )}
             {<Footer />}
         </div>
