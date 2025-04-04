@@ -20,9 +20,8 @@ const router = express.Router()
 
 
 env.config();
-
+const jsonsecretkey = process.env.JWT_SECRET_KEY;
 const url = process.env.MONGO_URI;
-
 const app = express();
 
 
@@ -71,7 +70,7 @@ MongoClient.connect(url).then(client => {
 });
 
 router.use(getRoutes(db));
-router.use(postRoutes(db));
+router.use(postRoutes(db, jsonsecretkey));
 router.use(patchRoutes(db));
 
 app.use(router);

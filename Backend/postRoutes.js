@@ -4,9 +4,8 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const jsonsecretkey = process.env.JWT_SECRET_KEY;
 
-function postRoutes(db) {
+function postRoutes(db, jsonsecretkey) {
     const router = express.Router();
 
 
