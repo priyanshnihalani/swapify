@@ -202,4 +202,4 @@ router.post('/sendmessagedb', async (request, response) => {
     response.status(200).send({ message: "Record Inserted" })
 })
 
-module.exports = router;
+export default router;

@@ -12,9 +12,9 @@ import bodyParser from 'body-parser';
 import Chat from './chat.js';
 import MongoStore from 'connect-mongo';
 // Create an Express app
-import {getRoutes} from './getRoutes.js'
-import {patchRoutes} from './patchRoutes.js'
-import {postRoutes} from './postRoutes.js'
+import getRoutes from './getRoutes.js'
+import patchRoutes from './patchRoutes.js'
+import postRoutes from './postRoutes.js'
 
 router.use(getRoutes);
 router.use(postRoutes);

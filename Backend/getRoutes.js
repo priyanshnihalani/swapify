@@ -201,4 +201,4 @@ router.get('/messages/:id', async (request, response) => {
     }
 })
 
-module.exports = router;
+export default router;

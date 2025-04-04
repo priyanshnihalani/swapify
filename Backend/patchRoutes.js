@@ -344,3 +344,5 @@ router.patch('/profileview/:id', async (request, response) => {
         return response.status(500).send({ message: 'Failed To Add View' });
     }
 })
+
+export default router;
