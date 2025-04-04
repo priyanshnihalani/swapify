@@ -151,7 +151,7 @@ function UserViewProfile() {
                 const result = await response.json();
 
                 if (result.filePath) {
-                    setImageSrc(`${backendUrl}${result.filePath}`);  // Note: no extra / needed
+                    setImageSrc(`${backendUrl}${result.filePath}`);
                 }
 
             } catch (error) {
