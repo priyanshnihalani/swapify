@@ -1,5 +1,4 @@
 import express from "express"
-const router = express.Router();
 import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 import bcrypt from 'bcrypt';
@@ -8,6 +7,7 @@ import jwt from 'jsonwebtoken';
 const jsonsecretkey = process.env.JWT_SECRET_KEY;
 
 function postRoutes(db) {
+    const router = express.Router();
 
 
     router.post('/updateRoom', async (request, response) => {

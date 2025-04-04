@@ -1,8 +1,9 @@
-import express, { Router } from "express"
-const router = express.Router();
+import express from "express"
 import { ObjectId } from 'mongodb';
 
 function getRoutes(db){
+    
+    const router = express.Router();
 
     router.get('/searchData/:data', async (request, response) => {
         const data = request.params.data;
