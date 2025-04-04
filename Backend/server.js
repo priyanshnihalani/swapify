@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express from 'express';
+import express, { Router } from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import { setupWebRTC } from './webrtc.js';
@@ -15,6 +15,7 @@ import MongoStore from 'connect-mongo';
 import getRoutes from './getRoutes.js'
 import patchRoutes from './patchRoutes.js'
 import postRoutes from './postRoutes.js'
+const router = express.Router()
 
 router.use(getRoutes);
 router.use(postRoutes);
