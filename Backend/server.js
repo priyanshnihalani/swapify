@@ -17,9 +17,6 @@ import patchRoutes from './patchRoutes.js'
 import postRoutes from './postRoutes.js'
 const router = express.Router()
 
-router.use(getRoutes);
-router.use(postRoutes);
-router.use(patchRoutes);
 
 env.config();
 
@@ -27,8 +24,7 @@ const url = process.env.MONGO_URI;
 
 const app = express();
 
-app.use(router);
-app.use('/', router); 
+
 // Middlewares
 app.use(cors({
     origin: "https://swapiify.vercel.app",
@@ -73,6 +69,12 @@ MongoClient.connect(url).then(client => {
     console.log(error);
 });
 
+router.use(getRoutes(db));
+router.use(postRoutes(db));
+router.use(patchRoutes(db));
+
+app.use(router);
+app.use('/', router); 
 
 setupWebRTC(io);
 
