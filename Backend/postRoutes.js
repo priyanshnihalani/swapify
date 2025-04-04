@@ -1,4 +1,4 @@
-import {express} from "express"
+import express from "express"
 const router = express.Router();
 import nodemailer from 'nodemailer'
 import crypto from 'crypto'

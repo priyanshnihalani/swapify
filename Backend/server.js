@@ -1,5 +1,5 @@
 import cors from 'cors';
-import {express} from 'express';
+import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import { setupWebRTC } from './webrtc.js';

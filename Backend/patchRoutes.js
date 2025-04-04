@@ -1,4 +1,4 @@
-import {express} from "express"
+import express from "express"
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import path from 'path';
