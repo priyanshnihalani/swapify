@@ -21,7 +21,8 @@ router.use(getRoutes);
 router.use(postRoutes);
 router.use(patchRoutes);
 
-
+app.use(router);
+app.use('/', router); 
 env.config();
 
 const url = process.env.MONGO_URI;
