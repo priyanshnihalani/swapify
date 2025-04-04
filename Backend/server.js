@@ -63,18 +63,14 @@ let db;
 MongoClient.connect(url).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
+    app.use('/', getRoutes(db));
+    app.use('/', postRoutes(db, jsonsecretkey));
+    app.use('/', patchRoutes(db));
     Chat(io, db, ObjectId);
 
 }).catch((error) => {
     console.log(error);
 });
-
-router.use(getRoutes(db));
-router.use(postRoutes(db, jsonsecretkey));
-router.use(patchRoutes(db));
-
-app.use(router);
-app.use('/', router); 
 
 setupWebRTC(io);
 
@@ -142,13 +138,13 @@ app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/register' }),
     (req, res) => {
         if (!req.user) {
-            return res.redirect('http://localhost:5173/?error=AuthenticationFailed');
+            return res.redirect(`https://${process.env.FRONTEND_URL}/?error=AuthenticationFailed`);
         }
 
         const { accessToken, name, id } = req.user;
 
         // Redirect directly to home page with hash params
-        res.redirect(`http://localhost:5173/?id=${id}&token=${accessToken}&name=${encodeURIComponent(name)}`);
+        res.redirect(`https://${process.env.FRONTEND_URL}/?id=${id}&token=${accessToken}&name=${encodeURIComponent(name)}`);
     }
 );
 
