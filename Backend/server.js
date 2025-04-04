@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { Router } from 'express';
+import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import { setupWebRTC } from './webrtc.js';
@@ -16,7 +16,6 @@ import getRoutes from './getRoutes.js'
 import patchRoutes from './patchRoutes.js'
 import postRoutes from './postRoutes.js'
 
-const router = express.Router()
 
 
 env.config();
@@ -132,8 +131,9 @@ passport.use(new FacebookStrategy(
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Facebook authentication routes
-app.get('/auth/facebook/', passport.authenticate('facebook')); // Redirect to Facebook
+
+app.get('/auth/facebook/', passport.authenticate('facebook')); 
+
 app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/register' }),
     (req, res) => {
@@ -143,7 +143,6 @@ app.get('/auth/facebook/callback',
 
         const { accessToken, name, id } = req.user;
 
-        // Redirect directly to home page with hash params
         res.redirect(`https://${process.env.FRONTEND_URL}/?id=${id}&token=${accessToken}&name=${encodeURIComponent(name)}`);
     }
 );
