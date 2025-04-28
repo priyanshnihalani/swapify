@@ -8,6 +8,7 @@ import popular from '../assets/images/popular.png'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAd, faChain, faDownload, faLightbulb, faPen, faPenFancy, faSignIn, faTachographDigital } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from 'react-router-dom';
+import { motion } from "framer-motion";
 
 function Home() {
     const token = localStorage.getItem('accesstoken');
@@ -96,14 +97,29 @@ function Home() {
         });
     }
 
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 50 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    };
+
+    const fadeInLeft = {
+        hidden: { opacity: 0, x: -50 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.6 } }
+    };
+
+    const fadeInRight = {
+        hidden: { opacity: 0, x: 50 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.6 } }
+    };
     return (
         <div className="Home overflow-x-hidden flex flex-col min-h-screen">
             <Header />
             <div className="font-jost">
                 {/* Hero Section with Fade and Slide Animations */}
-                <section className="min-h-screen flex flex-col justify-center items-center first-section md:px-10 py-20 lg:py-40 space-y-40 md:space-y-0 xl:space-y-0">
-                    <div className="w-full lg:w-1/2 py-0 md:py-20 lg:py-0 text-center xl:mt-10 
-                        animate-fade-in-down">
+                <motion.section viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp}  className="min-h-screen flex flex-col justify-center items-center first-section md:px-10 py-20 lg:py-40 space-y-40 md:space-y-0 xl:space-y-0">
+                    <motion.div className="w-full lg:w-1/2 py-0 md:py-20 lg:py-0 text-center xl:mt-10 
+                        ">
                         <h1 className="mx-auto w-[80%] text-xl text-[#252535] font-black md:text-4xl md:w-[80%] lg:w-[100%] xl:w-[90%]
                             transition-all duration-1000 hover:scale-105">
                             Share your expertise, gain new skills, and grow together!
@@ -122,7 +138,7 @@ function Home() {
                                 </button>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                     <div className="flex justify-start items-start w-full animate-fade-in-right">
                         <img
                             src={heroImage}
@@ -130,10 +146,11 @@ function Home() {
                             className="w-[60%] md:w-1/2 lg:w-1/3 transition-transform duration-500 hover:scale-105"
                         />
                     </div>
-                </section>
+                </motion.section>
 
                 {/* How It Works Section with Staggered Animations */}
-                <section className="min-h-screen flex flex-col items-center space-y-10 w-full">
+                <motion.section  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp} className="min-h-screen flex flex-col items-center space-y-10 w-full">
                     <div className="w-full space-y-4 mx-auto animate-fade-in-up">
                         <h1 className="text-center font-black text-3xl md:text-4xl text-[#252535]">How It Works</h1>
                         <p className="mx-auto w-3/4 text-center font-bold text-gray-800 text-xl">
@@ -186,11 +203,12 @@ function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </motion.section>
 
                 {/* Features Section with Reveal Animations */}
-                <section className="py-20 min-h-screen">
-                    <h1 className="py-20 font-black text-center text-4xl text-[#252535] animate-fade-in-up">Features</h1>
+                <motion.section  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp} className="py-20 min-h-screen">
+                    <h1 className="py-20 font-black text-center text-4xl text-[#252535] ">Features</h1>
                     <div className="flex flex-col lg:flex-row justify-center items-center px-10 space-y-40 lg:space-y-0 lg:space-x-40">
                         <div className="md:w-1/2 lg:w-1/3 animate-fade-in-left">
                             <img src={features}
@@ -198,7 +216,8 @@ function Home() {
                                 className="transition-transform duration-500 hover:scale-105"
                             />
                         </div>
-                        <ul className="space-y-4 md:space-y-8 lg:space-y-10">
+                        <motion.ul  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp} className="space-y-4 md:space-y-8 lg:space-y-10">
                             {['Find The Perfect Skill Match Easily',
                                 'Swap Skill Without Any Money Exchange',
                                 'Learn and Teach Anywhere and Anytime',
@@ -206,27 +225,30 @@ function Home() {
                                 'Explore Wide Range of Skills',
                                 'Secure and Reliable Communication',
                                 'Track Your Progress and Exchanges'].map((feature, index) => (
-                                    <li
+                                    <motion.li viewport={{once: false}} initial="hidden"
+                                    whileInView="visible" variants={fadeInUp}
                                         key={index}
-                                        className="font-bold opacity-100 animate-fade-in-right"
+                                        className="font-bold opacity-100"
                                         style={{ animationDelay: `${index * 200}ms` }}
                                     >
                                         {index + 1}. {feature}
-                                    </li>
+                                    </motion.li>
                                 ))}
-                        </ul>
+                        </motion.ul>
                     </div>
-                </section>
+                </motion.section>
 
 
                 {/* Popular Skills Section with Hover Effects */}
-                <section className="min-h-screen">
-                    <div className="w-full pt-40 md:py-10 space-y-4 mx-auto animate-fade-in-up">
+                <motion.section  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp} className="min-h-screen">
+                    <motion.div  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInUp} className="w-full pt-40 md:py-10 space-y-4 mx-auto">
                         <h1 className="text-center font-black text-3xl md:text-4xl text-[#252535]">Popular Skills</h1>
                         <p className="mx-auto w-full text-center font-bold text-gray-800 text-lg md:text-xl">
                             Explore the most sought-after skills to enhance your career and build new opportunities.
                         </p>
-                    </div>
+                    </motion.div>
                     <div className="w-full flex flex-col space-y-10">
                         {/* Skill cards with hover and animate-fade-in effects */}
                         <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-10">
@@ -234,7 +256,9 @@ function Home() {
                                 { icon: faAd, title: 'Digital Marketing' },
                                 { icon: faPen, title: 'Content Writing' }
                             ].map((skill, index) => (
-                                <div
+                                <motion.div
+                                viewport={{once: false}} initial="hidden"
+                                whileInView="visible" variants={fadeInRight}
                                     key={index}
                                     className="rounded-xl bg-gradient-to-r from-[#252535] to-[#6C6C9B] 
                                     px-8 py-12 md:px-10 md:py-12 space-y-2 text-white 
@@ -245,12 +269,13 @@ function Home() {
                                         <FontAwesomeIcon icon={skill.icon} size="2x" />
                                     </div>
                                     <h1 className="font-black text-white text-center">{skill.title}</h1>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
 
                         {/* Second Row with Similar Animations */}
-                        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20">
+                        <motion.div  viewport={{once: false}} initial="hidden"
+                    whileInView="visible" variants={fadeInLeft} className="flex flex-wrap justify-center items-center gap-10 md:gap-20">
                             {[
                                 { icon: faTachographDigital, title: 'Web Development' },
                                 { icon: faPenFancy, title: 'Graphic Designing' }
@@ -276,9 +301,9 @@ function Home() {
                                     transition-transform duration-500 hover:scale-105"
                                 />
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
-                </section>
+                </motion.section>
             </div>
             <Footer />
         </div>
