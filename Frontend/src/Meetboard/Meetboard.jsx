@@ -7,6 +7,7 @@ import { useState, useEffect, useContext } from "react";
 import SocketContext from "../Sockets/SocketContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import Rating from "../Rating/Rating";
+import { motion } from "framer-motion";
 
 function MeetBoard() {
     const [generateRoomId, setGenerateRoomId] = useState("");
