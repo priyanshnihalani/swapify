@@ -115,7 +115,9 @@ function MeetBoard() {
     }
 
     return (
-        <>
+        <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
+        animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
             <Header />
             <main className="font-jost flex flex-col py-10 md:flex-row justify-between items-center px-6 sm:px-10 md:px-20 lg:px-28 min-h-screen space-y-6 md:space-y-0 md:space-x-10 pb-10">
                 <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
@@ -183,7 +185,7 @@ function MeetBoard() {
                     <Rating display={setDisplayRating} data={location?.state} reviewed={setReviewed} />
                 </div>
             )}
-        </>
+        </motion.div>
     );
 }
 

@@ -12,7 +12,10 @@ import ratings from "../assets/images/ratings.png";
 import './PeopleViewProfile.css'
 import SocketContext from "../Sockets/SocketContext";
 import LoaderAnimation from '../Loader/Loader'
+import { motion } from "framer-motion";
+
 function PeopleViewProfile() {
+
   const params = useParams();
   const { uid } = params;
   const [data, setData] = useState(null);
@@ -238,7 +241,9 @@ function PeopleViewProfile() {
 
 
   return (
-    <>
+    <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
+    animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
+    transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
 
       {loading ? (<LoaderAnimation />) : (<>
         <Header />
@@ -383,7 +388,7 @@ function PeopleViewProfile() {
       </>
       )}
 
-    </>
+    </motion.div>
   );
 }
 

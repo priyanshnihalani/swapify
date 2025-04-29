@@ -8,7 +8,7 @@ import imageCompression from 'browser-image-compression'
 import { useForm } from 'react-hook-form'
 import history from '../assets/images/history.png'
 import LoaderAnimation from '../Loader/Loader'
-
+import { motion } from 'framer-motion'
 function UserViewProfile() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [profileImage, setProfileImage] = useState(null);
@@ -291,7 +291,9 @@ function UserViewProfile() {
     }
 
     return (
-        <>
+        <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
+        animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
             {loading ? (<LoaderAnimation />) : (<div className="font-jost min-h-screen ">
                 <Header />
 
@@ -625,7 +627,7 @@ function UserViewProfile() {
 
                 <Footer />
             </div>)}
-        </>
+        </motion.div>
     )
 }
 export default UserViewProfile

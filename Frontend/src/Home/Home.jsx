@@ -112,7 +112,10 @@ function Home() {
         visible: { opacity: 1, x: 0, transition: { duration: 0.6 } }
     };
     return (
-        <div className="Home overflow-x-hidden flex flex-col min-h-screen">
+        <motion.div initial={{ x: '-100vw', opacity: 0}}
+        animate={{ x: 0, opacity: 1}}
+        exit={{ x: '100vw', opacity: 0}}
+        transition={{ duration: 0.5 }}  className="Home overflow-x-hidden flex flex-col min-h-screen">
             <Header />
             <div className="font-jost">
                 {/* Hero Section with Fade and Slide Animations */}
@@ -306,7 +309,7 @@ function Home() {
                 </motion.section>
             </div>
             <Footer />
-        </div>
+        </motion.div>
     );
 }
 

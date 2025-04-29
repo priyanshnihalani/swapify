@@ -1,15 +1,15 @@
 import { useContext, useEffect, useState, useRef } from "react"
 import messageImage from '../assets/images/message.png'
 import './Messages.css'
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import SocketContext from "../Sockets/SocketContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowCircleRight, faCircleStop, faCommentDots, faHandDots, faListDots } from "@fortawesome/free-solid-svg-icons";
+import { faArrowCircleRight, faCircleStop } from "@fortawesome/free-solid-svg-icons";
 import LoaderAnimation from "../Loader/Loader";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
 
-
+import { motion } from "framer-motion";
 function Message() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -291,7 +291,9 @@ function Message() {
 
     return (
 
-        <div>
+        <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
+        animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
             {messageExist ? (<div>
                 {loading ? (
                     <LoaderAnimation />
@@ -391,7 +393,7 @@ function Message() {
                 </>
             )}
             {<Footer />}
-        </div>
+        </motion.div>
 
 
     )

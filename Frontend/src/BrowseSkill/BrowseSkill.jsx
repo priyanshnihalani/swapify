@@ -4,6 +4,7 @@ import Header from "../Header/Header";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { animate, motion } from "framer-motion";
 
 function Browseskill() {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -76,7 +77,9 @@ function Browseskill() {
     }
 
     return (
-        <>
+        <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
+        animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
             <Header />
             <main className="font-jost min-h-screen space-y-10 py-40 px-4">
                 {/* Title Section */}
@@ -135,7 +138,7 @@ function Browseskill() {
                 </div>
             </main>
             <Footer />
-        </>
+        </motion.div>
     );
 }
 

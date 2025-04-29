@@ -1,9 +1,11 @@
 import logo from '../assets/images/logo2.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { faArrowCircleDown, faBars, faEarth } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faEarth } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import './Header.css';
+
+
 
 function Header() {
     const [display, setDisplay] = useState(false);
