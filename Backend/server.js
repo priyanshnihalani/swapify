@@ -11,7 +11,6 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import Chat from './chat.js';
 import MongoStore from 'connect-mongo';
-// Create an Express app
 import getRoutes from './getRoutes.js'
 import patchRoutes from './patchRoutes.js'
 import postRoutes from './postRoutes.js'
@@ -33,17 +32,17 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use(bodyParser.json({ limit: '1gb' }));  // Increase limit to 50MB
-app.use(bodyParser.urlencoded({ limit: '1gb', extended: true }));
+app.use(bodyParser.json({ limit: '1gb' }));  // Increase the limit to 1GB for JSON payloads
+app.use(bodyParser.urlencoded({ limit: '1gb', extended: true })); // Increase the limit to 1GB for URL-encoded payloads
 
-app.use(session({
-    secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
-    resave: false,
-    saveUninitialized: true,
-    store: MongoStore.create({
-        mongoUrl: url,
-    })
-}));
+// app.use(session({
+//     secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
+//     resave: false,
+//     saveUninitialized: true,
+//     store: MongoStore.create({
+//         mongoUrl: url,
+//     })
+// }));
 
 
 app.use(passport.initialize());
@@ -132,7 +131,7 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 
-app.get('/auth/facebook/', passport.authenticate('facebook')); 
+app.get('/auth/facebook/', passport.authenticate('facebook'));
 
 app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/register' }),
