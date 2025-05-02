@@ -46,7 +46,7 @@ app.use(bodyParser.urlencoded({ limit: '1gb', extended: true })); // Increase th
 
 
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 const server = http.createServer(app);
 const io = new Server(server, {
