@@ -67,7 +67,7 @@ function UserViewProfile() {
     }, [setSkillProvide, setSkillProvide])
 
     useEffect(() => {
-        if (data && data.learnes) {
+        if (data && data?.learnes) {
             const fetchLearners = async () => {
                 const learnersData = await Promise.all(data?.learnes.map(async (item) => {
                     const response = await fetch(`${backendUrl}/userviewprofile/${item.teacher}`);
@@ -91,7 +91,7 @@ function UserViewProfile() {
     }, [data]);
 
     useEffect(() => {
-        if (data && data.teaches) {
+        if (data && data?.teaches) {
             const fetchTeachers = async () => {
                 const teachersData = await Promise.all(data?.teaches.map(async (item) => {
                     const response = await fetch(`${backendUrl}/userviewprofile/${item.learner}`);
@@ -146,6 +146,9 @@ function UserViewProfile() {
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                else {
+                    console.log(response.text())
                 }
 
                 const result = await response.json();
@@ -292,8 +295,8 @@ function UserViewProfile() {
 
     return (
         <motion.div initial={{ x: "-100vw", backgroundColor: "#243495" }}
-        animate={{ x: 0, backgroundColor: "#fff"}}   exit={{ x: "100vw", backgroundColor: "#ffffff" }}   
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
+            animate={{ x: 0, backgroundColor: "#fff" }} exit={{ x: "100vw", backgroundColor: "#ffffff" }}
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}>
             {loading ? (<LoaderAnimation />) : (<div className="font-jost min-h-screen ">
                 <Header />
 

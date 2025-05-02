@@ -154,6 +154,7 @@ function patchRoutes(db) {
 
         // But store only the relative path in database for serving
         const dbPath = `/uploads/${req.file.filename}`;
+        console.log(dbPath)
         const userId = req.params.id;
 
         try {
