@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import path from 'path';
 import { ObjectId } from 'mongodb';
+import fs from 'fs';
 
 function patchRoutes(db) {
 
@@ -13,9 +14,15 @@ function patchRoutes(db) {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
+    const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+    if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, path.join(__dirname, 'uploads/'))
+            cb(null, UPLOADS_DIR)
         },
         filename: function (req, file, cb) {
             cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
@@ -24,7 +31,7 @@ function patchRoutes(db) {
 
     const upload = multer({ storage })
 
-    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+    app.use("/uploads", express.static(UPLOADS_DIR));
 
     router.patch('/teachSkill', async (request, response) => {
 

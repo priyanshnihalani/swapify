@@ -147,12 +147,10 @@ function UserViewProfile() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                else {
-                    console.log(response.text())
-                }
 
                 const result = await response.json();
 
+                console.log(result)
                 if (result.filePath) {
                     setImageSrc(`${backendUrl}${result.filePath}`);
                 }
