@@ -135,6 +135,7 @@ function UserViewProfile() {
 
     async function handleCoverImage(event) {
         const file = event.target.files[0];
+        const token = localStorage.getItem('accesstoken')
         if (file) {
             const formData = new FormData();
             formData.append("coverImage", file);
@@ -142,6 +143,10 @@ function UserViewProfile() {
             try {
                 const response = await fetch(`${backendUrl}/uploadCover/${data._id}`, {
                     method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: formData,
                 });
 
