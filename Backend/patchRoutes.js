@@ -7,7 +7,6 @@ import { ObjectId } from 'mongodb';
 function patchRoutes(db, UPLOADS_DIR) {
 
     const router = express.Router();
-    const app = express()
 
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
@@ -19,8 +18,6 @@ function patchRoutes(db, UPLOADS_DIR) {
     })
 
     const upload = multer({ storage })
-
-    app.use("/uploads", express.static(UPLOADS_DIR));
 
     router.patch('/teachSkill', async (request, response) => {
 
