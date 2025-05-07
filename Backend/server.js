@@ -29,10 +29,7 @@ const app = express();
 app.use(cors({
     origin: "https://swapiify.vercel.app",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    credentials: true
 }));
-
-app.options('*', cors())
 
 app.use(express.json());
 
