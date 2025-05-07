@@ -144,7 +144,6 @@ function UserViewProfile() {
                 const response = await fetch(`${backendUrl}/uploadCover/${data._id}`, {
                     method: "PATCH",
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
                     body: formData,
