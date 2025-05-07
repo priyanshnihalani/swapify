@@ -186,7 +186,6 @@ function getRoutes(db){
         
         const opponentIds = [...opponent];
         
-        
         if (messages.length === 0 ||  opponentIds.length === 0) {
             console.log("No opponents found.");
             response.send({message: "No Opponents found"})
