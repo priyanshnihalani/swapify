@@ -32,18 +32,10 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(express.json());
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://swapiify.vercel.app');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200); 
-    }
+app.options('*', cors())
 
-    next();
-});
+app.use(express.json());
+
 
 app.use(bodyParser.json({ limit: '1gb' }));  // Increase the limit to 1GB for JSON payloads
 app.use(bodyParser.urlencoded({ limit: '1gb', extended: true })); // Increase the limit to 1GB for URL-encoded payloads

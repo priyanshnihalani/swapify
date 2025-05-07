@@ -142,6 +142,7 @@ function patchRoutes(db, UPLOADS_DIR) {
     })
 
     router.patch("/uploadCover/:id", upload.single("coverImage"), async (req, res) => {
+        
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
         }
