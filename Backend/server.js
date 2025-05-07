@@ -58,7 +58,6 @@ const io = new Server(server, {
     cors: {
         origin: "https://swapiify.vercel.app",
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-        allowedHeaders: ['Content-Type', 'Authorization'],
     },
 });
 
