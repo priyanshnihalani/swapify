@@ -1,24 +1,13 @@
 import express from "express"
-import { fileURLToPath } from 'url';
 import multer from 'multer';
 import path from 'path';
 import { ObjectId } from 'mongodb';
-import fs from 'fs';
 
-function patchRoutes(db) {
+
+function patchRoutes(db, UPLOADS_DIR) {
 
     const router = express.Router();
     const app = express()
-
-
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-
-    const UPLOADS_DIR = path.join(__dirname, 'uploads');
-
-    if (!fs.existsSync(UPLOADS_DIR)) {
-        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    }
 
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {

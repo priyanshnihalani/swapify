@@ -14,7 +14,9 @@ import MongoStore from 'connect-mongo';
 import getRoutes from './getRoutes.js'
 import patchRoutes from './patchRoutes.js'
 import postRoutes from './postRoutes.js'
-
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 
 env.config();
@@ -35,18 +37,18 @@ app.use(express.json());
 app.use(bodyParser.json({ limit: '1gb' }));  // Increase the limit to 1GB for JSON payloads
 app.use(bodyParser.urlencoded({ limit: '1gb', extended: true })); // Increase the limit to 1GB for URL-encoded payloads
 
-// app.use(session({
-//     secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
-//     resave: false,
-//     saveUninitialized: true,
-//     store: MongoStore.create({
-//         mongoUrl: url,
-//     })
-// }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || "3af8cd0a920e4edc8bc8ebe19c867bd06bcf5e2912b19876d334ba029f2030db",
+    resave: false,
+    saveUninitialized: true,
+    store: MongoStore.create({
+        mongoUrl: url,
+    })
+}));
 
 
 app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.session());
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -58,12 +60,23 @@ const io = new Server(server, {
 
 let db;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+app.use('/uploads', express.static(UPLOADS_DIR));
+
 MongoClient.connect(url).then(client => {
     console.log("DataBase Connected");
     db = client.db('swapify');
     app.use('/', getRoutes(db));
     app.use('/', postRoutes(db, jsonsecretkey));
-    app.use('/', patchRoutes(db));
+    app.use('/', patchRoutes(db, UPLOADS_DIR));
     Chat(io, db, ObjectId);
 
 }).catch((error) => {

@@ -53,6 +53,7 @@ function UserViewProfile() {
                 console.log(result)
                 setData(result)
                 setImageSrc(`${backendUrl}${result?.coverImage}`)
+                console.log(`${backendUrl}${result?.coverImage}`)
                 setProfileImage(result?.profileImage)
             }
             catch (error) {
