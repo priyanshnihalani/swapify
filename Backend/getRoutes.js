@@ -192,12 +192,18 @@ function getRoutes(db){
             
         }
         else {
-            const objectIds = opponentIds.map(id => new ObjectId(id));
+            const objectIds = opponentIds
+            .filter(id => id != null)  // Filter out null and undefined values
+            .map(id => id.toString())  // Ensure each id is a string
+            .filter(id => ObjectId.isValid(id))  // Ensure the string is a valid ObjectId
+            .map(id => new ObjectId(id)); 
+
+            console.log("hi" + objectIds)
 
             const opponentsDetails = await db.collection("users").find({
                 _id: { $in: objectIds }
             }).toArray();
-            
+
             response.send(opponentsDetails)
         }
     })
